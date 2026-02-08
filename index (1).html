@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Destruye y Ordena</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: Arial; background:#f2f2f2; text-align:center; }
+    .card { background:#fff; width:360px; margin:30px auto; padding:20px; border-radius:10px; }
+    button { padding:10px; width:100%; margin:5px 0; }
+    .palette { width:40px; height:40px; display:inline-block; margin:5px; border-radius:6px; cursor:pointer; }
+  </style>
+</head>
+<body>
+
+<h1>🎮 Destruye y Ordena</h1>
+
+<div class="card" id="auth">
+  <input id="email" placeholder="Email"><br><br>
+  <input id="password" type="password" placeholder="Contraseña"><br><br>
+  <button onclick="login()">Login</button>
+  <button onclick="register()">Registro</button>
+</div>
+
+<div class="card" id="game" style="display:none;">
+  <p>Puntos: <span id="points">0</span></p>
+  <p>Monedas: <span id="coins">0</span></p>
+  <button onclick="play()">Jugar</button>
+
+  <h3>Tienda</h3>
+  <div id="shop"></div>
+
+  <h4>Paleta activa</h4>
+  <div id="activeColor" class="palette"></div>
+
+  <button onclick="logout()">Salir</button>
+</div>
+
+<script>
+const supabase = supabase.createClient(
+  "TU_SUPABASE_URL",
+  "TU_SUPABASE_ANON_KEY"
+);
+
+let user, puntos=0, monedas=0, compradas=[], activo="#000";
+
+const PALETAS = [
+  {id:"rojo",color:"#e74c3c",precio:20},
+  {id:"azul",color:"#3498db",precio:20},
+  {id:"verde",color:"#2ecc71",precio:30},
+  {id:"morado",color:"#9b59b6",precio:40}
+];
+
+async function login(){
+  const {data}=await supabase.auth.signInWithPassword({email:email.value,password:password.value});
+  if(data) init(data.user);
+}
+async function register(){
+  const {data}=await supabase.auth.signUp({email:email.value,password:password.value});
+  if(data) init(data.user);
+}
+async function logout(){ await supabase.auth.signOut(); location.reload(); }
+
+async function init(u){
+  user=u; auth.style.display="none"; game.style.display="block";
+  await cargarProgreso(); await cargarCompras(); renderShop();
+}
+
+async function cargarProgreso(){
+  const {data}=await supabase.from("progreso").select("*").eq("user_id",user.id).single();
+  if(data){ puntos=data.puntos_max; monedas=data.monedas; }
+  else await supabase.from("progreso").insert({user_id:user.id,puntos_max:0,monedas:0});
+  updateUI();
+}
+
+async function cargarCompras(){
+  const {data}=await supabase.from("compras").select("item").eq("user_id",user.id);
+  if(data) compradas=data.map(x=>x.item);
+}
+
+async function play(){
+  puntos+=10; monedas+=5;
+  await supabase.from("progreso").update({puntos_max:puntos,monedas:monedas}).eq("user_id",user.id);
+  updateUI();
+}
+
+function renderShop(){
+  shop.innerHTML="";
+  PALETAS.forEach(p=>{
+    const d=document.createElement("div");
+    d.className="palette"; d.style.background=p.color;
+    d.onclick=()=> compradas.includes(p.id)?activar(p.color):comprar(p);
+    shop.appendChild(d);
+  });
+}
+
+async function comprar(p){
+  if(monedas<p.precio) return alert("Monedas insuficientes");
+  monedas-=p.precio; compradas.push(p.id);
+  await supabase.from("compras").insert({user_id:user.id,item:p.id,precio:p.precio});
+  await supabase.from("progreso").update({monedas}).eq("user_id",user.id);
+  renderShop(); updateUI();
+}
+
+function activar(c){ activo=c; activeColor.style.background=c; }
+function updateUI(){ points.textContent=puntos; coins.textContent=monedas; }
+
+supabase.auth.getUser().then(r=>{ if(r.data.user) init(r.data.user); });
+</script>
+</body>
+</html>
