@@ -2,32 +2,30 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Destruye y Ordena - Login</title>
-
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <title>Login - Juego</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
     body {
-      margin: 0;
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      background: #0f172a;
+      color: white;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      margin: 0;
     }
 
-    .login-container {
-      background: white;
+    .card {
+      background: #020617;
       padding: 30px;
-      width: 320px;
       border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      z-index: 10;
+      width: 320px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.6);
     }
 
-    h1 {
+    h2 {
       text-align: center;
       margin-bottom: 20px;
     }
@@ -36,92 +34,86 @@
       width: 100%;
       padding: 10px;
       margin-bottom: 12px;
-      font-size: 14px;
+      border-radius: 5px;
+      border: none;
     }
 
     button {
       width: 100%;
       padding: 10px;
-      margin-bottom: 10px;
-      font-size: 15px;
+      margin-top: 8px;
+      border: none;
+      border-radius: 5px;
       cursor: pointer;
+      font-weight: bold;
     }
 
-    /* 🔴 ESTO SOLUCIONA EL PROBLEMA DE NO PODER CLICKEAR */
-    button, input {
-      pointer-events: auto;
-      z-index: 20;
-      position: relative;
+    .login {
+      background: #22c55e;
     }
 
-    .msg {
-      text-align: center;
-      font-size: 14px;
-      margin-top: 10px;
-      color: red;
+    .register {
+      background: #3b82f6;
+    }
+
+    button:hover {
+      opacity: 0.9;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="login-container">
-    <h1>🎮 Destruye y Ordena</h1>
+  <div class="card">
+    <h2>🎮 Juego Online</h2>
 
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Contraseña">
+    <input id="email" type="email" placeholder="Correo" />
+    <input id="password" type="password" placeholder="Contraseña" />
 
-    <button onclick="login()">Login</button>
-    <button onclick="register()">Registro</button>
-
-    <div class="msg" id="msg"></div>
+    <button id="loginBtn" class="login">Iniciar Sesión</button>
+    <button id="registerBtn" class="register">Registrarse</button>
   </div>
 
-  <script>
-    // 🔑 CONFIGURA TUS DATOS DE SUPABASE
-    const supabaseUrl = "https://TU_PROYECTO.supabase.co";
-    const supabaseKey = "TU_PUBLIC_ANON_KEY";
+  <!-- SCRIPT COMO MÓDULO (CLAVE DEL PROBLEMA) -->
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    const supabaseUrl = "TU_SUPABASE_URL";
+    const supabaseKey = "TU_SUPABASE_ANON_KEY";
 
-    const msg = document.getElementById("msg");
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    async function login() {
-      msg.textContent = "Iniciando sesión...";
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const loginBtn = document.getElementById("loginBtn");
+    const registerBtn = document.getElementById("registerBtn");
 
+    loginBtn.addEventListener("click", async () => {
       const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password
+        email: emailInput.value,
+        password: passwordInput.value
       });
 
       if (error) {
-        msg.textContent = error.message;
+        alert(error.message);
       } else {
         window.location.href = "game.html";
       }
-    }
+    });
 
-    async function register() {
-      msg.textContent = "Registrando usuario...";
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
+    registerBtn.addEventListener("click", async () => {
       const { error } = await supabase.auth.signUp({
-        email,
-        password
+        email: emailInput.value,
+        password: passwordInput.value
       });
 
       if (error) {
-        msg.textContent = error.message;
+        alert(error.message);
       } else {
-        msg.style.color = "green";
-        msg.textContent = "Registro exitoso. Ahora inicia sesión.";
+        alert("Registro exitoso. Ahora inicia sesión.");
       }
-    }
+    });
   </script>
 
 </body>
 </html>
-
