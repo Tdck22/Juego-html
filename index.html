@@ -68,10 +68,7 @@
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-    // 🔹 TU PROYECTO (ESTO YA ES CORRECTO)
-    const supabaseUrl = "https://ugfsvlregmdtwagmkbk.supabase.co";
-
-    // 🔹 PEGA AQUÍ TU PUBLISHABLE KEY (sb_publishable_...)
+    const supabaseUrl = "https://ugfsvolregmdtwagmkbk.supabase.co";
     const supabaseKey = "sb_publishable_tw9_SXAyNJEiUpEERqmHvA_qqJhy7Id";
 
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -79,7 +76,6 @@
     const email = document.getElementById("email");
     const password = document.getElementById("password");
 
-    // LOGIN
     document.getElementById("loginBtn").addEventListener("click", async () => {
       const { error } = await supabase.auth.signInWithPassword({
         email: email.value,
@@ -93,7 +89,6 @@
       }
     });
 
-    // REGISTRO
     document.getElementById("registerBtn").addEventListener("click", async () => {
       const { error } = await supabase.auth.signUp({
         email: email.value,
@@ -110,4 +105,3 @@
 
 </body>
 </html>
-
