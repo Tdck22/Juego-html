@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Login - Juego</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body {
@@ -48,50 +48,40 @@
       font-weight: bold;
     }
 
-    .login {
-      background: #22c55e;
-    }
-
-    .register {
-      background: #3b82f6;
-    }
-
-    button:hover {
-      opacity: 0.9;
-    }
+    .login { background: #22c55e; }
+    .register { background: #3b82f6; }
   </style>
 </head>
 
 <body>
 
   <div class="card">
-    <h2>🎮 Juego Online</h2>
+    <h2>🎮 Destruye y Ordena</h2>
 
-    <input id="email" type="email" placeholder="Correo" />
-    <input id="password" type="password" placeholder="Contraseña" />
+    <input id="email" type="email" placeholder="Correo">
+    <input id="password" type="password" placeholder="Contraseña">
 
-    <button id="loginBtn" class="login">Iniciar Sesión</button>
-    <button id="registerBtn" class="register">Registrarse</button>
+    <!-- CLAVE: type="button" -->
+    <button type="button" id="loginBtn" class="login">Login</button>
+    <button type="button" id="registerBtn" class="register">Registro</button>
   </div>
 
-  <!-- SCRIPT COMO MÓDULO (CLAVE DEL PROBLEMA) -->
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
     const supabaseUrl = "TU_SUPABASE_URL";
     const supabaseKey = "TU_SUPABASE_ANON_KEY";
-
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const loginBtn = document.getElementById("loginBtn");
-    const registerBtn = document.getElementById("registerBtn");
+    const email = document.getElementById("email");
+    const password = document.getElementById("password");
 
-    loginBtn.addEventListener("click", async () => {
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      console.log("CLICK LOGIN");
+
       const { error } = await supabase.auth.signInWithPassword({
-        email: emailInput.value,
-        password: passwordInput.value
+        email: email.value,
+        password: password.value
       });
 
       if (error) {
@@ -101,10 +91,12 @@
       }
     });
 
-    registerBtn.addEventListener("click", async () => {
+    document.getElementById("registerBtn").addEventListener("click", async () => {
+      console.log("CLICK REGISTRO");
+
       const { error } = await supabase.auth.signUp({
-        email: emailInput.value,
-        password: passwordInput.value
+        email: email.value,
+        password: password.value
       });
 
       if (error) {
