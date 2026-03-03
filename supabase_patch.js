@@ -1,6 +1,6 @@
 /**
  * =====================================================
- *  DESTRUYE Y ORDENA — Parche Supabase v2
+ *  DESTRUYE Y ORDENA — Parche Supabase v3
  *  Agrega esta linea justo antes de </body> en tu HTML:
  *  <script type="module" src="supabase_patch.js"></script>
  * =====================================================
@@ -19,10 +19,11 @@ if (!session) {
 }
 const userId = session.user.id;
 
-// 2. Cargar progreso desde Supabase ANTES de que el jugador haga click
+// 2. Cargar progreso (highScore, monedas, logros) desde Supabase
 let sbHighScore = 0;
 let sbMonedas   = 0;
 let sbCompras   = [];
+let sbLogros    = [];
 
 const { data: progreso } = await supabase
     .from("progreso")
@@ -33,16 +34,22 @@ const { data: progreso } = await supabase
 if (progreso) {
     sbHighScore = progreso.puntaje_maximo || 0;
     sbMonedas   = progreso.monedas        || 0;
+    try {
+        sbLogros = JSON.parse(progreso.logros || "[]");
+    } catch(e) {
+        sbLogros = [];
+    }
 } else {
     await supabase.from("progreso").insert({
         user_id: userId,
         puntaje_maximo: 0,
         monedas: 0,
+        logros: "[]",
         actualizado: new Date().toISOString()
     });
 }
 
-// 3. Cargar lista de items comprados
+// 3. Cargar compras
 const { data: comprasData } = await supabase
     .from("compras")
     .select("item_id")
@@ -52,12 +59,18 @@ if (comprasData) {
     sbCompras = comprasData.map(c => c.item_id);
 }
 
-console.log("Supabase listo — highScore:", sbHighScore, "| monedas:", sbMonedas, "| compras:", sbCompras.length);
+console.log("Supabase listo — highScore:", sbHighScore, "| monedas:", sbMonedas, "| logros:", sbLogros.length, "| compras:", sbCompras.length);
 
 // Helpers para guardar en Supabase
-async function sbGuardarProgreso(puntaje_maximo, monedas) {
+async function sbGuardarProgreso(puntaje_maximo, monedas, logrosArr) {
     await supabase.from("progreso").upsert(
-        { user_id: userId, puntaje_maximo, monedas, actualizado: new Date().toISOString() },
+        {
+            user_id: userId,
+            puntaje_maximo,
+            monedas,
+            logros: JSON.stringify(logrosArr || sbLogros),
+            actualizado: new Date().toISOString()
+        },
         { onConflict: "user_id" }
     );
 }
@@ -70,7 +83,7 @@ async function sbRegistrarCompra(item_id) {
     });
 }
 
-// Restaurar items/paletas/profesores comprados en las variables del juego
+// Restaurar items/paletas/profesores comprados
 function restaurarCompras() {
     if (!sbCompras.length) return;
     sbCompras.forEach(id => {
@@ -92,7 +105,27 @@ function restaurarCompras() {
     console.log("Compras restauradas:", sbCompras.length, "items");
 }
 
-// 4. Interceptar startGame() — esperar a que el script principal declare funciones
+// Restaurar logros desbloqueados
+function restaurarLogros() {
+    if (!sbLogros.length) return;
+    if (typeof achievements === "undefined") return;
+    sbLogros.forEach(id => {
+        const ach = achievements.find(a => a.id === id);
+        if (ach) {
+            ach.unlocked = true;
+            ach.progress = ach.count;
+        }
+    });
+    console.log("Logros restaurados:", sbLogros.length);
+}
+
+// Obtener lista actual de logros desbloqueados
+function obtenerLogrosActuales() {
+    if (typeof achievements === "undefined") return [];
+    return achievements.filter(a => a.unlocked).map(a => a.id);
+}
+
+// 4. Interceptar startGame()
 await new Promise(r => setTimeout(r, 200));
 
 const _origStartGame = window.startGame;
@@ -115,12 +148,15 @@ window.startGame = function() {
             if (typeof updateHUD === "function") updateHUD();
         }
 
+        restaurarLogros();
         restaurarCompras();
         if (typeof initShop === "function") initShop();
+        if (typeof initAchievements === "function") initAchievements();
+
     }, 150);
 };
 
-// 5. Guardar highScore nuevo en Supabase
+// 5. Guardar highScore en Supabase
 const _origUpdateHS = window.updateHighScore;
 window.updateHighScore = function() {
     const antes = typeof game !== "undefined" ? game.highScore : 0;
@@ -128,21 +164,36 @@ window.updateHighScore = function() {
     const despues = typeof game !== "undefined" ? game.highScore : 0;
     if (despues > antes) {
         sbHighScore = despues;
-        sbGuardarProgreso(despues, typeof game !== "undefined" ? game.coins : 0);
+        sbGuardarProgreso(despues, typeof game !== "undefined" ? game.coins : 0, obtenerLogrosActuales());
     }
 };
 
-// 6. Guardar monedas en Supabase al guardar datos permanentes
+// 6. Guardar monedas y logros al guardar datos permanentes
 const _origSavePerm = window.savePermanentData;
 window.savePermanentData = function() {
     _origSavePerm.apply(this, arguments);
     if (typeof game !== "undefined") {
         sbMonedas = game.coins;
-        sbGuardarProgreso(game.highScore, game.coins);
+        const logrosActuales = obtenerLogrosActuales();
+        sbLogros = logrosActuales;
+        sbGuardarProgreso(game.highScore, game.coins, logrosActuales);
     }
 };
 
-// 7. Registrar compra de objeto de tienda
+// 7. Guardar logro inmediatamente cuando se desbloquea
+const _origUnlockAch = window.unlockAchievement;
+window.unlockAchievement = function(ach) {
+    _origUnlockAch.apply(this, arguments);
+    setTimeout(() => {
+        if (typeof game === "undefined") return;
+        const logrosActuales = obtenerLogrosActuales();
+        sbLogros = logrosActuales;
+        sbGuardarProgreso(game.highScore, game.coins, logrosActuales);
+        console.log("Logro guardado en Supabase:", ach.id);
+    }, 100);
+};
+
+// 8. Registrar compra de objeto
 const _origBuyItem = window.buyItem;
 window.buyItem = function(item, category) {
     const antesOwned = item ? item.owned : false;
@@ -153,7 +204,7 @@ window.buyItem = function(item, category) {
     }
 };
 
-// 8. Registrar compra de profesor
+// 9. Registrar compra de profesor
 const _origBuyTeacher = window.buyTeacher;
 window.buyTeacher = function(teacher) {
     const antesOwned = teacher ? teacher.owned : false;
@@ -164,7 +215,7 @@ window.buyTeacher = function(teacher) {
     }
 };
 
-// 9. Registrar compra de paleta (detectar via initShop)
+// 10. Registrar compra de paleta
 let _palSnap = [];
 function tomarSnapshotPaletas() {
     if (typeof palettes !== "undefined") {
@@ -188,4 +239,4 @@ window.initShop = function() {
 };
 
 setTimeout(tomarSnapshotPaletas, 600);
-console.log("Parche Supabase v2 listo y esperando jugador");
+console.log("Parche Supabase v3 listo y esperando jugador");
