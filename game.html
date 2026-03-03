@@ -144,6 +144,18 @@
             50% { box-shadow: 0 5px 15px rgba(0,0,0,0.3), 0 0 40px rgba(255,107,107,0.8); }
         }
 
+        /* PRO selected: white ring overrides the glow animation */
+        .btn.pro.selected {
+            box-shadow: 0 0 0 5px white, 0 8px 20px rgba(0,0,0,0.4), 0 0 30px rgba(255,107,107,0.6) !important;
+            transform: scale(1.05);
+            animation: proGlowSelected 2s infinite;
+        }
+
+        @keyframes proGlowSelected {
+            0%, 100% { box-shadow: 0 0 0 5px white, 0 8px 20px rgba(0,0,0,0.4), 0 0 25px rgba(255,107,107,0.5); }
+            50%       { box-shadow: 0 0 0 5px white, 0 8px 20px rgba(0,0,0,0.4), 0 0 45px rgba(255,107,107,0.9); }
+        }
+
         @keyframes proShine {
             0% { transform: rotate(0deg) translate(-100%, -100%); }
             100% { transform: rotate(0deg) translate(100%, 100%); }
@@ -158,6 +170,17 @@
             25% { transform: translate(30px, -20px) rotate(5deg); }
             50% { transform: translate(-20px, 30px) rotate(-5deg); }
             75% { transform: translate(20px, 20px) rotate(3deg); }
+        }
+
+        /* Profes comprados: giro nervioso mientras se desplazan */
+        @keyframes teacherWiggle {
+            0%,100% { transform: rotate(-8deg) scale(1); }
+            50%     { transform: rotate(8deg) scale(1.08); }
+        }
+        .teacher-roam {
+            transition: left 0.7s cubic-bezier(0.45,0,0.55,1),
+                        top  0.7s cubic-bezier(0.45,0,0.55,1);
+            animation: teacherWiggle 0.7s ease-in-out infinite !important;
         }
 
         @keyframes float {
@@ -206,12 +229,43 @@
             top: 0;
             left: 0;
             width: 100%;
-            padding: 15px 25px;
-            background: rgba(255,255,255,0.95);
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Thin purple record strip */
+        #hudRecordStrip {
+            background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
+            padding: 5px 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        #hudHighScore {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, rgba(255,215,0,0.25), rgba(255,160,0,0.15));
+            border: 1.5px solid rgba(255,215,0,0.55);
+            padding: 3px 18px;
+            border-radius: 26px;
+            font-size: 1.05em;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255,215,0,0.5);
+        }
+
+        /* White stats bar */
+        #hudStatsBar {
+            background: rgba(255,255,255,0.97);
+            padding: 10px 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            z-index: 5;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .hud-item {
@@ -226,10 +280,10 @@
         /* Game Area */
         #gameArea {
             position: absolute;
-            top: 80px;
+            top: 88px;
             left: 0;
             width: 100%;
-            height: calc(100% - 80px);
+            height: calc(100% - 88px);
         }
 
         .destructible, .organizable {
@@ -295,7 +349,7 @@
             width: 180px;
             height: 180px;
             border: 4px dashed rgba(255,255,255,0.6);
-            border-radius: 20px;
+            border-radius: 26px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -339,17 +393,20 @@
 
         .floating-text {
             position: fixed;
-            font-size: 2em;
+            font-size: 2.6em;
             font-weight: bold;
             pointer-events: none;
             z-index: 1000;
             animation: floatUp 2s ease-out forwards;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 0 0 20px currentColor, 2px 2px 0px rgba(0,0,0,0.6), -1px -1px 0 rgba(0,0,0,0.4);
+            letter-spacing: 1px;
+            paint-order: stroke fill;
         }
 
         @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
+            0%   { opacity: 1; transform: translateY(0) scale(1); }
+            15%  { opacity: 1; transform: translateY(-10px) scale(1.3); }
+            100% { opacity: 0; transform: translateY(-120px) scale(1.6); }
         }
 
         @keyframes explode {
@@ -368,7 +425,7 @@
             padding: 40px;
             border-radius: 25px;
             text-align: center;
-            z-index: 20;
+            z-index: 1000;
             color: white;
         }
 
@@ -382,16 +439,16 @@
             position: fixed;
             background: rgba(255,255,255,0.95);
             padding: 20px;
-            border-radius: 20px;
+            border-radius: 26px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-            z-index: 999;
+            z-index: 1003;
             max-height: 80vh;
             overflow-y: auto;
         }
 
         #achievementsPanel {
             top: 20px;
-            left: 20px;
+            right: 20px;
             max-width: 320px;
         }
 
@@ -514,6 +571,672 @@
         .toggle-btn:hover {
             transform: translateY(-3px);
         }
+
+        /* ===== TERMÓMETRO DE ESTRÉS ===== */
+
+        /* Make body flex so thermometer sits OUTSIDE the container */
+        body {
+            position: relative;
+        }
+
+        /* Modal */
+        #stressModal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        #stressModalBox {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #533483 100%);
+            border-radius: 28px;
+            padding: 40px 45px;
+            max-width: 540px;
+            width: 92%;
+            color: white;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 60px rgba(83,52,131,0.4);
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.12);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #stressModalBox::before {
+            content: '';
+            position: absolute;
+            top: -60%; left: -60%;
+            width: 220%; height: 220%;
+            background: conic-gradient(transparent 70%, rgba(255,215,0,0.04) 80%, transparent 90%);
+            animation: modalSpin 8s linear infinite;
+        }
+
+        @keyframes modalSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        #stressModalBox h2 {
+            font-size: 2em;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffd700, #ff6b9d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+        }
+
+        .stress-question {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin: 12px 0;
+            text-align: left;
+            position: relative;
+        }
+
+        .stress-question p {
+            font-size: 0.95em;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .stress-options {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .stress-opt {
+            padding: 7px 13px;
+            border: 1.5px solid rgba(255,255,255,0.25);
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.85);
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85em;
+            transition: all 0.2s;
+        }
+
+        .stress-opt:hover {
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .stress-opt.selected {
+            background: linear-gradient(135deg, #ffd700, #ff6b9d);
+            border-color: transparent;
+            color: #1a1a2e;
+            font-weight: bold;
+        }
+
+        /* ============================
+           THERMOMETER SIDE PANEL
+           Fixed in the purple area to the LEFT of the game container
+        ============================ */
+        #stressHUD {
+            position: fixed;
+            right: calc(50% + 618px);
+            top: 50%;
+            transform: translateY(-50%);
+            width: 240px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 0px;
+            z-index: 600;
+            font-family: 'Comic Sans MS', Arial, sans-serif;
+        }
+
+        @media (max-width: 1700px) {
+            #stressHUD {
+                right: auto;
+                left: max(4px, calc(50% - 840px));
+                width: 215px;
+            }
+        }
+        @media (max-width: 1440px) {
+            #stressHUD {
+                right: auto;
+                left: 4px;
+                width: 190px;
+            }
+        }
+
+        #stressHUD.visible {
+            display: flex;
+        }
+
+        /* Glass card wrapping everything */
+        .thermo-card {
+            background: linear-gradient(180deg, rgba(10,3,30,0.98) 0%, rgba(20,8,55,0.98) 60%, rgba(35,12,80,0.98) 100%);
+            border-radius: 28px;
+            border: 1.5px solid rgba(255,255,255,0.14);
+            box-shadow:
+                0 24px 70px rgba(0,0,0,0.75),
+                inset 0 0 50px rgba(255,255,255,0.025),
+                0 0 50px rgba(130,60,255,0.35),
+                0 0 100px rgba(100,40,200,0.2);
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 26px 20px 28px;
+            gap: 13px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .thermo-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255,215,0,0.8), rgba(200,100,255,0.6), transparent);
+            animation: topShimmer 3s ease-in-out infinite;
+        }
+
+        .thermo-card::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 28px;
+            background: conic-gradient(
+                from 0deg,
+                transparent 0%,
+                rgba(130,60,255,0.15) 25%,
+                transparent 50%,
+                rgba(255,215,0,0.08) 75%,
+                transparent 100%
+            );
+            animation: cardRotateGlow 8s linear infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes topShimmer {
+            0%,100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes cardRotateGlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .thermo-card-title {
+            font-size: 0.8em;
+            color: rgba(255,255,255,0.65);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: bold;
+            text-align: center;
+            text-shadow: 0 0 12px rgba(200,150,255,0.5);
+        }
+
+        /* MOOD FACE */
+        #stressMoodFace {
+            font-size: 3em;
+            filter: drop-shadow(0 0 10px rgba(255,215,0,0.5));
+            animation: moodFloat 2.5s ease-in-out infinite;
+            line-height: 1;
+        }
+
+        @keyframes moodFloat {
+            0%,100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-5px) scale(1.08); }
+        }
+
+        /* MOTIVATIONAL WORDS — floating in thermometer */
+        .motiv-words-area {
+            position: relative;
+            width: 100%;
+            height: 68px;
+            overflow: visible;
+        }
+
+        .motiv-word {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.18em;
+            font-weight: bold;
+            color: #fff;
+            text-align: center;
+            white-space: nowrap;
+            opacity: 0;
+            animation: wordFloat 3s ease-out forwards;
+            background: rgba(0,0,0,0.4);
+            padding: 8px 18px;
+            border-radius: 22px;
+            border: 2px solid currentColor;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 16px currentColor;
+        }
+
+        @keyframes wordFloat {
+            0%   { opacity: 0; transform: translateX(-50%) scale(0.5) translateY(12px); }
+            18%  { opacity: 1; transform: translateX(-50%) scale(1.15) translateY(-4px); }
+            35%  { opacity: 1; transform: translateX(-50%) scale(1.0) translateY(0px); }
+            72%  { opacity: 1; transform: translateX(-50%) scale(1.0) translateY(-6px); }
+            100% { opacity: 0; transform: translateX(-50%) scale(0.85) translateY(-18px); }
+        }
+
+        /* Big center screen motivational popup */
+        #motivCenterPopup {
+            position: absolute;
+            top: 42%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 200;
+            pointer-events: none;
+            text-align: center;
+            opacity: 0;
+        }
+
+        #motivCenterPopup.show {
+            animation: motivPopIn 2.4s ease-out forwards;
+        }
+
+        @keyframes motivPopIn {
+            0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.2) rotate(-15deg); }
+            18%  { opacity: 1; transform: translate(-50%, -50%) scale(1.3) rotate(5deg); }
+            32%  { opacity: 1; transform: translate(-50%, -50%) scale(1.0) rotate(-2deg); }
+            68%  { opacity: 1; transform: translate(-50%, -50%) scale(1.05) rotate(0deg); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.85) translateY(-30px); }
+        }
+
+        .motiv-popup-inner {
+            background: rgba(10,5,30,0.82);
+            backdrop-filter: blur(6px);
+            border-radius: 24px;
+            padding: 16px 32px;
+            border: 2.5px solid rgba(255,255,255,0.22);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .motiv-popup-text {
+            font-size: 2.3em;
+            font-weight: bold;
+            font-family: 'Comic Sans MS', Arial, sans-serif;
+            text-shadow: 0 0 25px currentColor, 0 2px 8px rgba(0,0,0,0.6);
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        .motiv-popup-stars {
+            font-size: 1.4em;
+            letter-spacing: 5px;
+            opacity: 0.9;
+        }
+
+        /* THERMOMETER TUBE */
+        .thermo-outer {
+            position: relative;
+            width: 52px;
+            height: 310px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 26px;
+            border: 2px solid rgba(255,255,255,0.15);
+            overflow: hidden;
+            box-shadow: inset 0 3px 15px rgba(0,0,0,0.5),
+                        0 0 20px rgba(0,0,0,0.3);
+        }
+
+        /* Scale markings via pseudo - just decorative */
+        .thermo-scale {
+            position: absolute;
+            right: -12px;
+            top: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 8px 0;
+        }
+
+        .scale-tick {
+            width: 8px;
+            height: 2px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 1px;
+        }
+
+        .scale-tick.major {
+            width: 12px;
+            background: rgba(255,255,255,0.4);
+        }
+
+        #thermoFill {
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 100%;
+            border-radius: 16px;
+            transition: height 1.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            background: linear-gradient(to top,
+                #c0392b 0%,
+                #e74c3c 20%,
+                #e67e22 45%,
+                #f39c12 65%,
+                #f1c40f 80%,
+                #2ecc71 100%);
+            box-shadow: 0 0 18px rgba(231,76,60,0.7);
+        }
+
+        #thermoFill::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 5px;
+            width: 7px;
+            height: 100%;
+            background: rgba(255,255,255,0.22);
+            border-radius: 4px;
+        }
+
+        /* Bubbles */
+        .thermo-bubble {
+            position: absolute;
+            width: 5px; height: 5px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.45);
+            animation: bubbleRise 2.5s ease-in infinite;
+        }
+
+        @keyframes bubbleRise {
+            0%   { transform: translateY(0) scale(1); opacity:0.7; }
+            100% { transform: translateY(-200px) scale(0.2); opacity:0; }
+        }
+
+        /* HOT BULB */
+        .thermo-bulb {
+            width: 76px; height: 76px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 32% 28%, #ff9f9f, #c0392b 60%, #8e1a1a);
+            border: 3px solid rgba(255,255,255,0.22);
+            box-shadow: 0 0 30px rgba(231,76,60,0.9), inset 0 2px 8px rgba(255,255,255,0.25),
+                        0 0 60px rgba(231,76,60,0.4);
+            animation: bulbPulse 1.8s ease-in-out infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            margin-top: -10px;
+            position: relative;
+            z-index: 2;
+        }
+
+        @keyframes bulbPulse {
+            0%,100% { box-shadow: 0 0 20px rgba(231,76,60,0.8); transform: scale(1); }
+            50%     { box-shadow: 0 0 40px rgba(231,76,60,1), 0 0 70px rgba(231,76,60,0.3); transform: scale(1.06); }
+        }
+
+        /* CIRCULAR PROGRESS */
+        .stress-ring-wrap {
+            position: relative;
+            width: 110px; height: 110px;
+        }
+
+        .stress-ring-wrap svg {
+            transform: rotate(-90deg);
+        }
+
+        .ring-bg   { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 9; }
+        .ring-fill {
+            fill: none;
+            stroke-width: 9;
+            stroke-linecap: round;
+            stroke-dasharray: 276;
+            transition: stroke-dashoffset 1.4s ease, stroke 0.8s ease;
+        }
+
+        .ring-center-label {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%,-50%);
+            font-size: 1em;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            line-height: 1.1;
+        }
+
+        /* STATUS TEXT */
+        .thermo-status {
+            font-size: 0.75em;
+            color: rgba(255,255,255,0.7);
+            text-align: center;
+            line-height: 1.4;
+            padding: 0 4px;
+            font-style: italic;
+        }
+
+        /* Mini progress bar */
+        .thermo-progress-bar {
+            width: 90%;
+            height: 8px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .thermo-progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #e74c3c, #f39c12, #2ecc71);
+            transition: width 1.4s ease;
+        }
+
+        /* ============================
+           CELEBRATION MODAL
+        ============================ */
+        #stressCelebration {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 9500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: celebFadeIn 0.4s ease;
+        }
+
+        #stressCelebration.show {
+            display: flex;
+        }
+
+        @keyframes celebFadeIn {
+            from { opacity:0; }
+            to   { opacity:1; }
+        }
+
+        #stressCelebrationBox {
+            background: linear-gradient(135deg, #0d0d1a 0%, #1a0533 40%, #2d0052 100%);
+            border: 2px solid rgba(255,215,0,0.4);
+            border-radius: 32px;
+            padding: 55px 65px;
+            text-align: center;
+            max-width: 580px;
+            width: 92%;
+            box-shadow: 0 0 100px rgba(255,215,0,0.25), 0 40px 80px rgba(0,0,0,0.6);
+            animation: celebPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #stressCelebrationBox::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: conic-gradient(transparent 20%, rgba(255,215,0,0.04) 50%, transparent 80%);
+            animation: celebSpin 5s linear infinite;
+        }
+
+        @keyframes celebSpin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+        @keyframes celebPop {
+            from { transform: scale(0.2) rotate(-15deg); opacity:0; }
+            to   { transform: scale(1) rotate(0deg); opacity:1; }
+        }
+
+        .celeb-emoji-shower {
+            font-size: 2.8em;
+            letter-spacing: 4px;
+            margin-bottom: 18px;
+            animation: celebBounce 0.6s ease-in-out infinite alternate;
+            position: relative;
+        }
+
+        @keyframes celebBounce {
+            from { transform: translateY(0) scale(1); }
+            to   { transform: translateY(-12px) scale(1.05); }
+        }
+
+        .celeb-title-main {
+            font-size: 2.2em;
+            font-weight: bold;
+            background: linear-gradient(135deg, #ffd700 0%, #ff9f43 40%, #ff6b9d 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .celeb-stars-row {
+            font-size: 1.8em;
+            letter-spacing: 5px;
+            margin: 8px 0 16px;
+            animation: starSpin 2s ease-in-out infinite;
+        }
+
+        @keyframes starSpin {
+            0%,100% { transform: scale(1) rotate(-3deg); }
+            50%     { transform: scale(1.15) rotate(3deg); }
+        }
+
+        .celeb-subtitle-text {
+            color: rgba(255,255,255,0.8);
+            font-size: 1.05em;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .celeb-stat-row {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 28px;
+            position: relative;
+        }
+
+        .celeb-stat {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 14px;
+            padding: 12px 20px;
+        }
+
+        .celeb-stat-val {
+            font-size: 1.6em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .celeb-stat-lbl {
+            font-size: 0.7em;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .celeb-close-btn {
+            background: linear-gradient(135deg, #ffd700, #ff6b9d);
+            border: none;
+            border-radius: 50px;
+            padding: 16px 40px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #1a0533;
+            cursor: pointer;
+            font-family: inherit;
+            box-shadow: 0 8px 25px rgba(255,215,0,0.4);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .celeb-close-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 35px rgba(255,215,0,0.6);
+        }
+
+        /* ============================
+           MODOS DE JUEGO EN TIENDA
+        ============================ */
+                /* Modos de juego en tienda */
+        .mode-shop-item {
+            background: rgba(0,0,0,0.05);
+            border-radius: 12px;
+            padding: 12px;
+            margin: 8px 0;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-shop-item:hover {
+            border-color: var(--accent);
+            background: rgba(102,126,234,0.1);
+        }
+
+        .mode-shop-item.active-mode {
+            border-color: #27ae60;
+            background: rgba(39,174,96,0.1);
+        }
+
+        .mode-shop-item h4 {
+            margin: 0 0 4px 0;
+            font-size: 1em;
+        }
+
+        .mode-shop-item p {
+            font-size: 0.8em;
+            color: #666;
+            margin: 0 0 6px 0;
+        }
+
+        /* ── Toast de compra silenciosa ── */
+        #shopToast {
+            position: fixed;
+            bottom: 90px;
+            right: 24px;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 14px;
+            font-size: 1em;
+            font-weight: bold;
+            font-family: 'Comic Sans MS', Arial, sans-serif;
+            box-shadow: 0 6px 20px rgba(39,174,96,0.45);
+            z-index: 4000;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        #shopToast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -567,27 +1290,42 @@
             <button class="btn primary" id="playButton" style="margin-top: 30px; font-size: 1.5em; display: none;" onclick="startPlay()">
                 ▶️ ¡JUGAR!
             </button>
+
         </div>
 
         <!-- HUD -->
         <div id="hud" class="hidden">
-            <div class="hud-item">❤️ <span id="lives">3</span></div>
-            <div class="hud-item">⭐ <span id="score">0</span></div>
-            <div class="hud-item">🎯 <span id="objects">0/0</span></div>
-            <div class="hud-item">🔄 <span id="round">1/10</span></div>
-            <div class="hud-item">📊 Nivel <span id="level">1</span></div>
-            <div class="hud-item" style="color: #f39c12;">💰 <span id="coins">0</span></div>
-            <button class="btn primary" onclick="togglePause()" style="padding: 10px 20px; margin-left: 20px; font-size: 1em;">⏸️ Pausa</button>
+            <!-- Thin purple strip: ONLY the record -->
+            <div id="hudRecordStrip">
+                <div id="hudHighScore">
+                    🏆 <span style="font-size:0.75em;font-weight:bold;letter-spacing:1px;color:rgba(255,220,50,0.7);">RÉC</span>&nbsp;<span id="highScoreValue">0</span>
+                </div>
+            </div>
+            <!-- White stats bar: ALL game params -->
+            <div id="hudStatsBar">
+                <div class="hud-item">❤️ <span id="lives">3</span></div>
+                <div class="hud-item">⭐ <span id="score">0</span></div>
+                <div class="hud-item">🎯 <span id="objects">0/0</span></div>
+                <div class="hud-item">🔄 <span id="round">1/10</span></div>
+                <div class="hud-item">📊 Niv.<span id="level">1</span></div>
+                <div class="hud-item" style="color: #f39c12;">💰 <span id="coins">0</span></div>
+                <button class="btn primary" onclick="togglePause()" style="padding: 8px 18px; font-size: 0.95em;">⏸️ Pausa</button>
+            </div>
         </div>
 
-        <!-- High Score Display -->
-        <div id="highScoreDisplay" class="hidden" style="position: fixed; top: 100px; right: 20px; background: rgba(255,215,0,0.95); padding: 15px 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 10;">
-            <div style="color: #666; font-size: 0.9em; font-weight: bold;">🏆 RÉCORD</div>
-            <div id="highScoreValue" style="font-size: 1.8em; font-weight: bold; color: #d63031;">0</div>
-        </div>
+        <!-- High Score Display (oculto - ahora está en el HUD) -->
+        <div id="highScoreDisplay" class="hidden" style="display:none!important;"></div>
 
         <!-- Game Area -->
-        <div id="gameArea" class="hidden"></div>
+        <div id="gameArea" class="hidden">
+            <!-- Center motivational popup -->
+            <div id="motivCenterPopup">
+                <div class="motiv-popup-inner">
+                    <div class="motiv-popup-text" id="motivPopupText">¡Tú puedes!</div>
+                    <div class="motiv-popup-stars" id="motivPopupStars">⭐⭐⭐</div>
+                </div>
+            </div>
+        </div>
 
         <!-- Pause Menu -->
         <div id="pauseMenu" class="modal hidden" style="background: rgba(0,0,0,0.9);">
@@ -595,7 +1333,6 @@
                 <h2 style="color: white; font-size: 3em; margin-bottom: 30px;">⏸️ PAUSA</h2>
                 <button class="btn primary" onclick="togglePause()" style="margin: 10px; font-size: 1.3em;">▶️ Reanudar</button>
                 <button class="btn primary" onclick="saveAndExit()" style="margin: 10px; font-size: 1.3em;">💾 Guardar y Salir</button>
-                <button class="btn destruction" onclick="confirmQuit()" style="margin: 10px; font-size: 1.3em;">❌ Salir sin Guardar</button>
             </div>
         </div>
 
@@ -621,9 +1358,146 @@
                 <button class="btn primary" onclick="backToMenu()">Menú</button>
             </div>
         </div>
+
+
+    </div>
+
+    <!-- ===== THERMOMETER SIDE PANEL ===== -->
+    <div id="stressHUD">
+        <div class="thermo-card">
+            <div class="thermo-card-title">😤 Estresómetro</div>
+
+            <!-- Mood face -->
+            <div id="stressMoodFace">😰</div>
+
+            <!-- Motivational words float area -->
+            <div class="motiv-words-area" id="motivWordsArea"></div>
+
+            <!-- Scale + Tube -->
+            <div style="display:flex; align-items:flex-end; gap:4px; position:relative;">
+                <!-- Scale ticks -->
+                <div class="thermo-scale">
+                    <div class="scale-tick major"></div>
+                    <div class="scale-tick"></div>
+                    <div class="scale-tick"></div>
+                    <div class="scale-tick major"></div>
+                    <div class="scale-tick"></div>
+                    <div class="scale-tick"></div>
+                    <div class="scale-tick major"></div>
+                    <div class="scale-tick"></div>
+                    <div class="scale-tick major"></div>
+                </div>
+                <div class="thermo-outer">
+                    <div id="thermoFill" style="height:100%"></div>
+                    <div class="thermo-bubble" style="left:5px; animation-delay:0s; animation-duration:2.8s;"></div>
+                    <div class="thermo-bubble" style="left:15px; animation-delay:1s; animation-duration:3.2s;"></div>
+                    <div class="thermo-bubble" style="left:24px; animation-delay:2s; animation-duration:2.2s;"></div>
+                </div>
+            </div>
+
+            <!-- Bulb -->
+            <div class="thermo-bulb">🔥</div>
+
+            <!-- Circular Progress Ring -->
+            <div class="stress-ring-wrap">
+                <svg width="110" height="110" viewBox="0 0 110 110">
+                    <circle class="ring-bg" cx="55" cy="55" r="44"/>
+                    <circle id="stressRingFill" class="ring-fill" cx="55" cy="55" r="44"
+                        stroke="#e74c3c" stroke-dashoffset="276"/>
+                </svg>
+                <div class="ring-center-label" id="stressPctLabel">0%</div>
+            </div>
+
+            <!-- Mini progress bar -->
+            <div class="thermo-progress-bar">
+                <div class="thermo-progress-fill" id="thermoPBarFill" style="width:0%"></div>
+            </div>
+
+            <!-- Status text -->
+            <div class="thermo-status" id="stressStatusMsg">¡Juega para liberar estrés!</div>
+            <button onclick="resetStressToday()" style="margin-top:4px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.6); border-radius:8px; padding:5px 8px; font-size:0.5em; cursor:pointer; font-family:inherit; transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
+                🔄 Re-evaluar
+            </button>
+        </div>
+    </div>
+
+
+    <!-- ===== MODAL TERMÓMETRO DE ESTRÉS ===== -->
+    <div id="stressModal" class="hidden">
+        <div id="stressModalBox">
+            <h2>🌡️ ¿Cómo estás hoy?</h2>
+            <p style="color:rgba(255,255,255,0.65); margin-bottom:12px; font-size:0.9em; position:relative;">
+                Responde 3 preguntas y el Estresómetro calculará cuánto estrés necesitas liberar hoy 💆
+            </p>
+
+            <div class="stress-question">
+                <p>😰 ¿Cómo describes tu nivel de estrés ahora mismo?</p>
+                <div class="stress-options">
+                    <button class="stress-opt" data-q="1" data-val="1" onclick="selectStressOpt(this)">Muy tranquilo 😌</button>
+                    <button class="stress-opt" data-q="1" data-val="2" onclick="selectStressOpt(this)">Un poco tenso 😐</button>
+                    <button class="stress-opt" data-q="1" data-val="3" onclick="selectStressOpt(this)">Bastante estresado 😟</button>
+                    <button class="stress-opt" data-q="1" data-val="4" onclick="selectStressOpt(this)">Muy estresado 😤</button>
+                </div>
+            </div>
+
+            <div class="stress-question">
+                <p>💤 ¿Cómo dormiste anoche?</p>
+                <div class="stress-options">
+                    <button class="stress-opt" data-q="2" data-val="1" onclick="selectStressOpt(this)">Muy bien 😴</button>
+                    <button class="stress-opt" data-q="2" data-val="2" onclick="selectStressOpt(this)">Regular 🥱</button>
+                    <button class="stress-opt" data-q="2" data-val="3" onclick="selectStressOpt(this)">Poco 😵</button>
+                    <button class="stress-opt" data-q="2" data-val="4" onclick="selectStressOpt(this)">Casi nada 💀</button>
+                </div>
+            </div>
+
+            <div class="stress-question">
+                <p>📋 ¿Cuántas tareas o pendientes tienes hoy?</p>
+                <div class="stress-options">
+                    <button class="stress-opt" data-q="3" data-val="1" onclick="selectStressOpt(this)">Ninguna 🎉</button>
+                    <button class="stress-opt" data-q="3" data-val="2" onclick="selectStressOpt(this)">Pocas 📝</button>
+                    <button class="stress-opt" data-q="3" data-val="3" onclick="selectStressOpt(this)">Varias 📚</button>
+                    <button class="stress-opt" data-q="3" data-val="4" onclick="selectStressOpt(this)">Muchísimas 🔥</button>
+                </div>
+            </div>
+
+            <button class="btn primary" id="stressConfirmBtn" onclick="confirmStress()"
+                style="background:linear-gradient(135deg,#ffd700,#ff6b9d); color:#1a0533; margin-top:12px;
+                       padding:14px 35px; opacity:0.4; cursor:not-allowed; border:none; position:relative;" disabled>
+                ¡Empezar a liberar estrés! 💥
+            </button>
+        </div>
+    </div>
+
+
+    <!-- ===== CELEBRATION MODAL ===== -->
+    <div id="stressCelebration">
+        <div id="stressCelebrationBox">
+            <div class="celeb-emoji-shower">🎉🧘✨💆🌟</div>
+            <div class="celeb-title-main">¡Estrés Liberado!</div>
+            <div class="celeb-stars-row">⭐ ⭐ ⭐</div>
+            <div class="celeb-subtitle-text" id="celebMessage">
+                ¡Lo lograste! Destruiste y organizaste suficiente para sentirte mejor. 🌈
+            </div>
+
+            <div class="celeb-stat-row">
+                <div class="celeb-stat">
+                    <div class="celeb-stat-val" id="celebReleasedVal">0</div>
+                    <div class="celeb-stat-lbl">Puntos liberados hoy 🎮</div>
+                </div>
+                <div class="celeb-stat">
+                    <div class="celeb-stat-val" id="celebGoalVal">0</div>
+                    <div class="celeb-stat-lbl">Meta de hoy 🎯</div>
+                </div>
+            </div>
+            <p style="color:rgba(255,255,255,0.35);font-size:0.72em;margin-bottom:14px;position:relative;">
+                Cada punto que ganas jugando equivale a estrés liberado 🧘
+            </p>
+            <button class="celeb-close-btn" onclick="closeCelebration()">¡Genial! Seguir jugando 🚀</button>
+        </div>
     </div>
 
     <!-- Achievements Panel -->
+
     <div id="achievementsPanel" class="panel hidden">
         <h3>🏆 Logros</h3>
         <div id="achievementsList"></div>
@@ -638,6 +1512,7 @@
             <button class="diff-btn selected" style="padding: 10px 15px; font-size: 0.9em; background: var(--accent); color: white; border-color: var(--accent);" onclick="switchShopTab('items')" id="tabItems">Objetos</button>
             <button class="diff-btn" style="padding: 10px 15px; font-size: 0.9em; background: #f0f0f0; color: #333; border-color: #ccc;" onclick="switchShopTab('teachers')" id="tabTeachers">Profesores</button>
             <button class="diff-btn" style="padding: 10px 15px; font-size: 0.9em; background: #f0f0f0; color: #333; border-color: #ccc;" onclick="switchShopTab('palettes')" id="tabPalettes">Paletas</button>
+            <button class="diff-btn" style="padding: 10px 15px; font-size: 0.9em; background: #f0f0f0; color: #333; border-color: #ccc;" onclick="switchShopTab('modes')" id="tabModes">🎮 Modos</button>
         </div>
         
         <!-- Contenido de la tienda -->
@@ -653,7 +1528,7 @@
     </div>
 
     <!-- Achievement Notification -->
-    <div id="achievementNotification" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); width: 450px; background: linear-gradient(135deg, #ffd700, #ffed4e); padding: 30px; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 300; transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.5s; border: 4px solid #f39c12; opacity: 0;">
+    <div id="achievementNotification" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); width: 450px; background: linear-gradient(135deg, #ffd700, #ffed4e); padding: 30px; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 1001; transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.5s; border: 4px solid #f39c12; opacity: 0;">
         <div style="font-size: 2em; font-weight: bold; color: #2d3561; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 15px;">
             <span style="font-size: 1.5em;">🏆</span>
             <span id="achNotifTitle"></span>
@@ -662,25 +1537,27 @@
         <div id="achNotifReward" style="color: #d63031; font-weight: bold; font-size: 1.4em; text-align: center;"></div>
     </div>
 
+
+    <div id="shopToast">✅ ¡Comprado!</div>
     <!-- Fireworks Canvas -->
-    <canvas id="fireworksCanvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 299; display: none;"></canvas>
+    <canvas id="fireworksCanvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; display: none;"></canvas>
 
     <script>
-        // ID único para este archivo - cada vez que descargues el juego tendrá un ID diferente
-        // Esto permite que cada archivo tenga su propio progreso guardado independiente
-        const GAME_ID = 'game_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-        
-        // Funciones helper para localStorage con ID único
+        // El progreso se guarda por nombre de usuario para que persista entre sesiones
+        function storageKey(key) {
+            return 'dyo_' + (game.username || 'guest') + '_' + key;
+        }
+
         function setStorage(key, value) {
-            localStorage.setItem(GAME_ID + '_' + key, value);
+            localStorage.setItem(storageKey(key), value);
         }
-        
+
         function getStorage(key) {
-            return localStorage.getItem(GAME_ID + '_' + key);
+            return localStorage.getItem(storageKey(key));
         }
-        
+
         function removeStorage(key) {
-            localStorage.removeItem(GAME_ID + '_' + key);
+            localStorage.removeItem(storageKey(key));
         }
         
         // Game State
@@ -703,7 +1580,13 @@
             highScore: 0,
             timers: [], // Para controlar los timers durante la pausa
             roundCompleting: false, // Bandera para evitar doble llamada
-            processingNextRound: false // Bandera para evitar saltos de ronda
+            processingNextRound: false, // Bandera para evitar saltos de ronda
+            // Estrés
+            stressLevel: 0,        // 0-12, total de respuestas
+            stressGoal: 0,         // puntos meta para liberar estrés
+            stressReleased: 0,     // puntos liberados en el día
+            stressCheckedToday: false, // si ya se hicieron las preguntas hoy
+            activeGameMode: null   // modo de categorías activo (comprado en tienda)
         };
 
         const difficulties = {
@@ -782,28 +1665,192 @@
             ]
         };
 
-        // Profesores - Incluyendo al Prof. Rosales
+        // Profesores
         const teachers = [
-            { id: 'garcia', name: 'Prof. García', emoji: '👨‍🏫', price: 300, owned: false },
-            { id: 'martinez', name: 'Prof. Martínez', emoji: '👩‍🏫', price: 400, owned: false },
-            { id: 'lopez', name: 'Prof. López', emoji: '🧑‍🏫', price: 500, owned: false },
-            { id: 'rosales', name: 'Prof. Rosales ⭐', emoji: '👨‍🎓', price: 1500, owned: false, special: true }
+            { id: 'garcia',   name: 'Prof. García',   emoji: '🧑',  price: 300,  owned: false },
+            { id: 'martinez', name: 'Prof. Martínez', emoji: '👩',  price: 400,  owned: false },
+            { id: 'lopez',    name: 'Prof. López',    emoji: '🧔',  price: 500,  owned: false },
+            { id: 'torres',   name: 'Prof. Torres',   emoji: '👱',  price: 600,  owned: false },
+            { id: 'ramirez',  name: 'Prof. Ramírez',  emoji: '🧓',  price: 700,  owned: false },
+            { id: 'diaz',     name: 'Prof. Díaz',     emoji: '👴',  price: 750,  owned: false },
+            { id: 'vega',     name: 'Prof. Vega',     emoji: '👩',  price: 900,  owned: false },
+            { id: 'mora',     name: 'Prof. Mora',     emoji: '🧕',  price: 1000, owned: false },
+            { id: 'rosales',  name: 'Prof. Rosales',  emoji: '🎓',  price: 1500, owned: false, special: true }
         ];
 
         // Variables para items comprados
         game.boughtItems = [];
         game.boughtTeachers = [];
         game.currentShopTab = 'items';
+        
+        // Mapeo de categorías de tienda a categorías de juego
+        function getCategoryMapping(shopCategory) {
+            const mapping = {
+                'science': 'ciencias',
+                'art': 'objetos',  // Arte va al depósito dinámico de objetos
+                'sports': 'objetos',
+                'food': 'objetos',
+                'nature': 'objetos',
+                'technology': 'objetos'
+            };
+            return mapping[shopCategory] || 'objetos';
+        }
+        
+        // Función para obtener el nombre y emoji de la categoría original
+        function getCategoryDisplay(shopCategory) {
+            const displays = {
+                'science': { name: 'Ciencias', emoji: '🧬' },
+                'art': { name: 'Arte', emoji: '🎨' },
+                'sports': { name: 'Deportes', emoji: '⚽' },
+                'food': { name: 'Comida', emoji: '🍕' },
+                'nature': { name: 'Naturaleza', emoji: '🌳' },
+                'technology': { name: 'Tecnología', emoji: '📱' }
+            };
+            return displays[shopCategory] || { name: 'Objetos', emoji: '🎁' };
+        }
+        
+        // Función para restaurar el depósito de objetos a su estado original
+        function restoreObjectsZone() {
+            const objetosZone = document.querySelector('.drop-zone[data-category="objetos"]');
+            if (objetosZone) {
+                const icon = objetosZone.querySelector('.zone-icon');
+                const label = objetosZone.querySelector('.zone-label');
+                if (icon && label) {
+                    icon.textContent = '🎁';
+                    label.textContent = 'Objetos';
+                }
+            }
+        }
 
 
         const palettes = [
             { id: 'purple', name: 'Púrpura', cost: 0, owned: true },
-            { id: 'ocean', name: 'Océano', cost: 500, owned: false },
-            { id: 'sunset', name: 'Atardecer', cost: 750, owned: false },
-            { id: 'forest', name: 'Bosque', cost: 1000, owned: false },
-            { id: 'neon', name: 'Neón', cost: 1250, owned: false },
-            { id: 'lavender', name: 'Lavanda', cost: 1500, owned: false },
-            { id: 'fire', name: 'Fuego', cost: 2000, owned: false }
+            { id: 'ocean', name: 'Océano', cost: 300, owned: false },
+            { id: 'sunset', name: 'Atardecer', cost: 450, owned: false },
+            { id: 'forest', name: 'Bosque', cost: 600, owned: false },
+            { id: 'neon', name: 'Neón', cost: 800, owned: false },
+            { id: 'lavender', name: 'Lavanda', cost: 1000, owned: false },
+            { id: 'fire', name: 'Fuego', cost: 1200, owned: false }
+        ];
+        // ===== MODOS DE JUEGO (categorías alternativas para organización) =====
+        const gameModes = [
+            {
+                id: 'mundo',
+                name: '🌍 Mundo',
+                desc: 'Naturaleza, Animales, Viajes, Clima',
+                price: 250,
+                destructionEmojis: ['🌳','🌸','🍃','🌺','🐶','🐱','🐘','🦁','✈️','🗺️','🧳','🏝️','☀️','🌧️','❄️','🌈'],
+                categories: {
+                    naturaleza: { icon: '🌿', label: 'Naturaleza', emojis: ['🌳', '🌸', '🍃', '🌺'] },
+                    animales:   { icon: '🐾', label: 'Animales',   emojis: ['🐶', '🐱', '🐘', '🦁'] },
+                    viajes:     { icon: '✈️', label: 'Viajes',     emojis: ['✈️', '🗺️', '🧳', '🏝️'] },
+                    clima:      { icon: '🌤️', label: 'Clima',      emojis: ['☀️', '🌧️', '❄️', '🌈'] }
+                }
+            },
+            {
+                id: 'cultura',
+                name: '🎭 Cultura',
+                desc: 'Arte, Música, Cine, Deporte',
+                price: 380,
+                destructionEmojis: ['🎨','🖌️','🖼️','✏️','🎵','🎸','🎤','🎹','🎬','🎥','🎞️','🍿','⚽','🏀','🎾','🏆'],
+                categories: {
+                    arte:    { icon: '🎨', label: 'Arte',    emojis: ['🎨', '🖌️', '🖼️', '✏️'] },
+                    musica:  { icon: '🎵', label: 'Música',  emojis: ['🎵', '🎸', '🎤', '🎹'] },
+                    cine:    { icon: '🎬', label: 'Cine',    emojis: ['🎬', '🎥', '🎞️', '🍿'] },
+                    deporte: { icon: '⚽', label: 'Deporte', emojis: ['⚽', '🏀', '🎾', '🏆'] }
+                }
+            },
+            {
+                id: 'tech',
+                name: '🤖 Tech',
+                desc: 'Tecnología, Ciencia, Espacio, Futuro',
+                price: 500,
+                destructionEmojis: ['💻','📱','🤖','⌨️','🔬','⚛️','🧬','🧪','🚀','🛸','🌙','🔮','🧠','💡','⚡','⭐'],
+                categories: {
+                    tecnologia: { icon: '💻', label: 'Tech',    emojis: ['💻', '📱', '🤖', '⌨️'] },
+                    ciencia:    { icon: '🔬', label: 'Ciencia', emojis: ['🔬', '⚛️', '🧬', '🧪'] },
+                    espacio:    { icon: '🚀', label: 'Espacio', emojis: ['🚀', '🛸', '🌙', '⭐'] },
+                    futuro:     { icon: '🔮', label: 'Futuro',  emojis: ['🔮', '🧠', '💡', '⚡'] }
+                }
+            },
+            {
+                id: 'comida',
+                name: '🍕 Foodie',
+                desc: 'Frutas, Fast Food, Postres, Bebidas',
+                price: 300,
+                destructionEmojis: ['🍎','🍌','🍓','🍇','🍔','🍕','🌮','🍟','🍰','🎂','🍦','🍩','☕','🧃','🥤','🍵'],
+                categories: {
+                    frutas:  { icon: '🍎', label: 'Frutas',    emojis: ['🍎','🍌','🍓','🍇'] },
+                    rapida:  { icon: '🍔', label: 'Fast Food', emojis: ['🍔','🍕','🌮','🍟'] },
+                    postres: { icon: '🍰', label: 'Postres',   emojis: ['🍰','🎂','🍦','🍩'] },
+                    bebidas: { icon: '☕', label: 'Bebidas',   emojis: ['☕','🧃','🥤','🍵'] }
+                }
+            },
+            {
+                id: 'emociones',
+                name: '😊 Emociones',
+                desc: 'Alegría, Amor, Sorpresa, Calma',
+                price: 280,
+                destructionEmojis: ['😂','🤣','😊','😄','❤️','💕','🥰','💖','😱','😲','🤩','🎉','😌','🧘','🌙','☮️'],
+                categories: {
+                    felicidad: { icon: '😄', label: 'Alegría',  emojis: ['😂','🤣','😊','😄'] },
+                    amor:      { icon: '❤️', label: 'Amor',     emojis: ['❤️','💕','🥰','💖'] },
+                    sorpresa:  { icon: '😱', label: 'Sorpresa', emojis: ['😱','😲','🤩','🎉'] },
+                    calma:     { icon: '😌', label: 'Calma',    emojis: ['😌','🧘','🌙','☮️'] }
+                }
+            },
+            {
+                id: 'halloween',
+                name: '🎃 Halloween',
+                desc: 'Monstruos, Magia, Terror, Dulces',
+                price: 400,
+                destructionEmojis: ['🎃','👻','💀','🦇','🧙','🔮','⚗️','🌙','😱','🕷️','🕸️','🍬','🍭','🦴','🪄','🧟'],
+                categories: {
+                    monstruos: { icon: '👻', label: 'Monstruos', emojis: ['👻','💀','🦇','🧟'] },
+                    magia:     { icon: '🔮', label: 'Magia',     emojis: ['🧙','🔮','⚗️','🪄'] },
+                    terror:    { icon: '😱', label: 'Terror',    emojis: ['😱','🕷️','🕸️','🦴'] },
+                    dulces:    { icon: '🍬', label: 'Dulces',    emojis: ['🍬','🍭','🎃','🫙'] }
+                }
+            },
+            {
+                id: 'galaxia',
+                name: '🌌 Galaxia',
+                desc: 'Planetas, Naves, Aliens, Cosmos',
+                price: 550,
+                destructionEmojis: ['🌍','🌕','🪐','⭐','🚀','🛸','🛰️','🔭','👾','👽','☄️','💫','🌠','🌌','⚡','🤖'],
+                categories: {
+                    planetas: { icon: '🪐', label: 'Planetas', emojis: ['🌍','🌕','🪐','⭐'] },
+                    naves:    { icon: '🚀', label: 'Naves',    emojis: ['🚀','🛸','🛰️','🔭'] },
+                    aliens:   { icon: '👽', label: 'Aliens',   emojis: ['👾','🤖','👽','🌌'] },
+                    cosmos:   { icon: '☄️', label: 'Cosmos',   emojis: ['☄️','💫','🌠','⚡'] }
+                }
+            },
+            {
+                id: 'medieval',
+                name: '⚔️ Medieval',
+                desc: 'Caballeros, Magia, Bestias, Tesoros',
+                price: 470,
+                destructionEmojis: ['⚔️','🛡️','🏰','👑','🧙','🧝','🐉','🔥','🗡️','🏹','💎','📜','🪄','🧪','🦁','🐺'],
+                categories: {
+                    caballeros: { icon: '⚔️', label: 'Caballeros', emojis: ['⚔️','🛡️','🏰','👑'] },
+                    magia:      { icon: '🧙', label: 'Magia',      emojis: ['🧙','🧝','🔮','🪄'] },
+                    bestias:    { icon: '🐉', label: 'Bestias',    emojis: ['🐉','🔥','🦁','🐺'] },
+                    tesoros:    { icon: '💎', label: 'Tesoros',    emojis: ['💎','👑','📜','⚗️'] }
+                }
+            },
+            {
+                id: 'fiesta',
+                name: '🎉 Fiesta',
+                desc: 'Decoración, Música, Baile, Celebración',
+                price: 250,
+                destructionEmojis: ['🎉','🎊','🎈','🎁','🎵','🎶','🎸','🥁','💃','🕺','🎤','🪩','🍾','🥂','🍰','🎂'],
+                categories: {
+                    decoracion: { icon: '🎈', label: 'Decoración', emojis: ['🎉','🎊','🎈','🎁'] },
+                    musica:     { icon: '🎵', label: 'Música',     emojis: ['🎵','🎶','🎸','🥁'] },
+                    baile:      { icon: '💃', label: 'Baile',      emojis: ['💃','🕺','🎤','🪩'] },
+                    celebra:    { icon: '🍾', label: 'Celebración',emojis: ['🍾','🥂','🍰','🎂'] }
+                }
+            }
         ];
 
         // Audio
@@ -834,6 +1881,314 @@
         }
 
         // Initialize
+        // ===== FUNCIONES TERMÓMETRO DE ESTRÉS =====
+        const stressAnswers = { 1: 0, 2: 0, 3: 0 };
+        let celebrationShown = false;
+        let motivTimerId = null;
+
+        // Motivational words library
+        const motivWords = [
+            ['💪 ¡Tú puedes!', '#f39c12'],
+            ['🔥 ¡Eso es!', '#e74c3c'],
+            ['✨ ¡Increíble!', '#9b59b6'],
+            ['🌟 ¡Sigue!', '#2ecc71'],
+            ['⚡ ¡Boom!', '#f1c40f'],
+            ['🎯 ¡Perfecto!', '#3498db'],
+            ['💥 ¡Genial!', '#e67e22'],
+            ['🧘 Respira...', '#1abc9c'],
+            ['🚀 ¡Arriba!', '#e056fd'],
+            ['😤 ¡Sin estrés!', '#d63031'],
+            ['🌈 ¡Vas bien!', '#00b894'],
+            ['🎉 ¡Así se hace!', '#fdcb6e'],
+            ['💆 Relájate', '#74b9ff'],
+            ['🏆 ¡Campeón!', '#ffd700'],
+            ['😊 ¡Casi!', '#55efc4'],
+            ['⭐ ¡Brillante!', '#a29bfe'],
+        ];
+
+        let lastMotivIdx = -1;
+        let motivActionCount = 0;     // actions since last message
+        const MOTIV_EVERY_N = 5;      // show message every N actions
+
+        // Called on every successful player action (destroy/organize).
+        // Shows a message every MOTIV_EVERY_N actions.
+        function spawnMotivWord() {
+            if (!game.stressCheckedToday) return;
+            if (game.isPaused) return;
+            motivActionCount++;
+            if (motivActionCount < MOTIV_EVERY_N) return; // not yet
+            motivActionCount = 0;
+
+            const area = document.getElementById('motivWordsArea');
+            if (!area) return;
+            let idx;
+            do { idx = Math.floor(Math.random() * motivWords.length); } while (idx === lastMotivIdx);
+            lastMotivIdx = idx;
+            const [text, color] = motivWords[idx];
+
+            area.innerHTML = '';
+            const el = document.createElement('div');
+            el.className = 'motiv-word';
+            el.textContent = text;
+            el.style.color = color;
+            el.style.textShadow = '0 0 16px ' + color + ', 0 0 6px ' + color + '99';
+            area.appendChild(el);
+            setTimeout(() => { if (el.parentNode) el.remove(); }, 3200);
+        }
+
+        // No longer needed — messages fire on action with cooldown
+        function startMotivLoop() { /* noop */ }
+        function stopMotivLoop()  { if (motivTimerId) { clearTimeout(motivTimerId); motivTimerId = null; } }
+
+        function showShopToast(msg) {
+            const t = document.getElementById('shopToast');
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+        }
+
+        function resetStressToday() {
+            // Clear today's localStorage so the modal shows again
+            localStorage.removeItem('stressDay_' + game.username);
+            localStorage.removeItem('stressData_' + game.username);
+            game.stressCheckedToday = false;
+            game.stressGoal = 0;
+            game.stressReleased = 0;
+            celebrationShown = false;
+            stressAnswers[1] = 0; stressAnswers[2] = 0; stressAnswers[3] = 0;
+            // Reset option buttons
+            document.querySelectorAll('.stress-opt').forEach(b => b.classList.remove('selected'));
+            const confirmBtn = document.getElementById('stressConfirmBtn');
+            confirmBtn.disabled = true;
+            confirmBtn.style.opacity = '0.4';
+            confirmBtn.style.cursor = 'not-allowed';
+            // Show modal
+            document.getElementById('stressModal').classList.remove('hidden');
+        }
+
+        function showStressModal() {
+            const today = new Date().toDateString();
+            const savedDay = localStorage.getItem('stressDay_' + game.username);
+            const savedData = localStorage.getItem('stressData_' + game.username);
+
+            if (savedDay === today && savedData) {
+                const data = JSON.parse(savedData);
+                game.stressLevel    = data.stressLevel;
+                game.stressGoal     = data.stressGoal;
+                game.stressReleased = data.stressReleased || 0;
+                game.stressCheckedToday = true;
+                celebrationShown = data.celebrationShown || false;
+                updateStressHUD();
+
+                // Si ya completó la meta hoy, mostrar saludo en lugar del modal de evaluación
+                const pct = Math.min(100, Math.round((game.stressReleased / game.stressGoal) * 100));
+                if (pct >= 100) {
+                    setTimeout(() => {
+                        alert('🎉 ¡Bienvenido/a de vuelta, ' + game.username + '!\n\n✅ Ya liberaste todo tu estrés de hoy (' + game.stressReleased + ' / ' + game.stressGoal + ' pts).\n\n¡Sigue jugando para mantener el ánimo! 🌟');
+                    }, 400);
+                }
+                return;
+            }
+            document.getElementById('stressModal').classList.remove('hidden');
+        }
+
+        function selectStressOpt(btn) {
+            const q = btn.dataset.q;
+            stressAnswers[q] = parseInt(btn.dataset.val);
+            document.querySelectorAll(`.stress-opt[data-q="${q}"]`).forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+
+            const allAnswered = stressAnswers[1] > 0 && stressAnswers[2] > 0 && stressAnswers[3] > 0;
+            const confirmBtn = document.getElementById('stressConfirmBtn');
+            if (allAnswered) {
+                confirmBtn.disabled = false;
+                confirmBtn.style.opacity = '1';
+                confirmBtn.style.cursor = 'pointer';
+            }
+        }
+
+        function confirmStress() {
+            const total = stressAnswers[1] + stressAnswers[2] + stressAnswers[3]; // 3-12
+            game.stressLevel = total;
+
+            // Increased goals — rango 150 a 1500 puntos
+            const goalMap = {
+                3:  300,
+                4:  500,
+                5:  750,
+                6: 1000,
+                7: 1400,
+                8: 1800,
+                9: 2200,
+               10: 2700,
+               11: 3200,
+               12: 4000
+            };
+            game.stressGoal = goalMap[total] || 600;
+            game.stressReleased = 0;
+            game.stressCheckedToday = true;
+            celebrationShown = false;
+
+            const today = new Date().toDateString();
+            localStorage.setItem('stressDay_' + game.username, today);
+            localStorage.setItem('stressData_' + game.username, JSON.stringify({
+                stressLevel: game.stressLevel,
+                stressGoal:  game.stressGoal,
+                stressReleased: 0,
+                celebrationShown: false
+            }));
+
+            document.getElementById('stressModal').classList.add('hidden');
+            updateStressHUD();
+
+            const messages = {
+                3:  '😌 ¡Genial! Solo un poco de juego para mantener el equilibrio.',
+                5:  '😐 Un par de rondas te vendrán muy bien.',
+                7:  '😟 ¡Vamos! El juego te ayudará a soltar tensiones.',
+                9:  '😤 Sesión intensa de alivio de estrés activada.',
+                12: '🔥 ¡Hora de destruir TODO! Tu estrés merece una sesión épica.'
+            };
+            const lvl = total <= 3 ? 3 : total <= 5 ? 5 : total <= 7 ? 7 : total <= 9 ? 9 : 12;
+            setTimeout(() => alert('😤 Evaluación completada\n\n' + messages[lvl] + '\n\n✨ Meta de hoy: ' + game.stressGoal + ' puntos'), 200);
+        }
+
+        function updateStressHUD() {
+            if (!game.stressCheckedToday || game.stressGoal === 0) return;
+
+            const hudEl = document.getElementById('stressHUD');
+            const isInGame = !document.getElementById('gameArea').classList.contains('hidden');
+            const isMenu   = !document.getElementById('menuScreen').classList.contains('hidden');
+
+            if (isInGame || isMenu) {
+                hudEl.classList.add('visible');
+                if (motivTimerId === null) startMotivLoop();
+            }
+
+            const pct = Math.min(100, Math.round((game.stressReleased / game.stressGoal) * 100));
+            const remaining = Math.max(0, game.stressGoal - game.stressReleased);
+
+            // Thermometer fill goes from 100% (full stress) → 0% (stress released)
+            const fillPct = Math.max(0, 100 - pct);
+            document.getElementById('thermoFill').style.height = fillPct + '%';
+
+            // Progress bar
+            document.getElementById('thermoPBarFill').style.width = pct + '%';
+
+            // Circular ring  (circumference = 2*pi*44 ≈ 276)
+            const circumference = 276;
+            const offset = circumference - (pct / 100) * circumference;
+            const ringEl = document.getElementById('stressRingFill');
+            ringEl.style.strokeDashoffset = offset;
+            // Color transition red → orange → green
+            const ringColor = pct < 40 ? '#e74c3c' : pct < 75 ? '#f39c12' : '#2ecc71';
+            ringEl.style.stroke = ringColor;
+
+            // Percentage label
+            document.getElementById('stressPctLabel').innerHTML = pct + '%<br><span style="font-size:0.7em;opacity:0.7">liberado</span>';
+
+            // Mood face
+            const moodFace = document.getElementById('stressMoodFace');
+            if (pct >= 100) moodFace.textContent = '🥳';
+            else if (pct >= 75) moodFace.textContent = '😊';
+            else if (pct >= 50) moodFace.textContent = '😐';
+            else if (pct >= 25) moodFace.textContent = '😟';
+            else moodFace.textContent = '😰';
+
+            // Status
+            const statusEl = document.getElementById('stressStatusMsg');
+            if (pct >= 100) {
+                statusEl.textContent = '🎉 ¡Meta cumplida!';
+                statusEl.style.color = '#2ecc71';
+            } else if (pct >= 75) {
+                statusEl.textContent = '🌟 ¡Casi! Faltan ' + remaining + ' pts';
+                statusEl.style.color = '#f1c40f';
+            } else if (pct >= 50) {
+                statusEl.textContent = '💪 Mitad lograda! Faltan ' + remaining;
+                statusEl.style.color = '#f39c12';
+            } else {
+                statusEl.textContent = '⬆️ Faltan ' + remaining + ' pts';
+                statusEl.style.color = '#e74c3c';
+            }
+
+            // Show celebration if just completed
+            if (pct >= 100 && !celebrationShown) {
+                celebrationShown = true;
+                const savedData = JSON.parse(localStorage.getItem('stressData_' + game.username) || '{}');
+                savedData.stressReleased  = game.stressReleased;
+                savedData.celebrationShown = true;
+                localStorage.setItem('stressData_' + game.username, JSON.stringify(savedData));
+                setTimeout(showStressCelebration, 800);
+            }
+        }
+
+        function showStressCelebration() {
+            const el = document.getElementById('stressCelebration');
+            // stressReleased = suma de puntos ganados en rondas de hoy
+            // stressGoal     = la meta personalizada según tu nivel de estrés
+            document.getElementById('celebReleasedVal').textContent = game.stressReleased;
+            document.getElementById('celebGoalVal').textContent     = game.stressGoal;
+
+            const messages = [
+                '¡Lo lograste! Tu mente y tu cuerpo te lo agradecen. Sigue así. 🌈',
+                '¡Increíble! Destruiste y organizaste lo suficiente para sentirte renovado. ✨',
+                '¡Campeón/a del estrés! La próxima vez será aún más fácil. 🏆',
+                '¡Estrés: 0 — Tú: 1000! Hoy ganaste la batalla mental. 💪'
+            ];
+            document.getElementById('celebMessage').innerHTML =
+                messages[Math.floor(Math.random() * messages.length)];
+
+            el.style.display = 'flex';
+            el.classList.add('show');
+            stopMotivLoop();
+        }
+
+        function closeCelebration() {
+            const el = document.getElementById('stressCelebration');
+            el.style.display = 'none';
+            el.classList.remove('show');
+        }
+
+        function addStressPoints(points) {
+            if (!game.stressCheckedToday) return;
+            game.stressReleased += points;
+            const savedData = JSON.parse(localStorage.getItem('stressData_' + game.username) || '{}');
+            savedData.stressReleased = game.stressReleased;
+            localStorage.setItem('stressData_' + game.username, JSON.stringify(savedData));
+            updateStressHUD();
+        }
+
+                // ===== FUNCIONES MODOS DE JUEGO =====
+        function activateGameMode(modeId) {
+            // Ya no se usa — los modos se activan solo al comprarlos
+        }
+
+        function buyGameMode(modeId) {
+            const mode = gameModes.find(m => m.id === modeId);
+            if (!mode) return;
+
+            if (game.coins < mode.price) {
+                showShopToast('💰 Faltan monedas — necesitas ' + mode.price + ' 💰');
+                return;
+            }
+
+            game.coins -= mode.price;
+            game.activeGameMode = mode.id; // Se activa para el SIGUIENTE round (consumible)
+            updateHUD();
+            savePermanentData();
+            initShop();
+
+            playSound(800, 0.1);
+            showShopToast('🎮 ' + mode.name + ' activado para el próximo round 🎯');
+        }
+
+        function getActiveGameModeCategories() {
+            if (!game.activeGameMode) return null;
+            const mode = gameModes.find(m => m.id === game.activeGameMode);
+            if (!mode) return null;
+            return mode.categories;
+        }
+
         function validateUsername() {
             const input = document.getElementById('usernameInput');
             const button = document.getElementById('startButton');
@@ -865,7 +2220,16 @@
             
             game.username = username;
             
-            // Cargar datos permanentes (monedas, logros, paletas)
+            // Guardar el último usuario para pre-rellenar el campo la próxima vez
+            localStorage.setItem('dyo_lastUser', username);
+            
+            // Restaurar paleta del usuario
+            const savedPalette = getStorage('palette');
+            if (savedPalette) document.body.className = savedPalette;
+            
+            // Cargar high score del usuario
+            const savedHighScore = getStorage('highScore');
+            if (savedHighScore) game.highScore = parseInt(savedHighScore);
             const permanentData = getStorage('permanentData');
             if (permanentData) {
                 const data = JSON.parse(permanentData);
@@ -923,6 +2287,9 @@
                 // Cargar items comprados
                 if (data.boughtItems) game.boughtItems = data.boughtItems;
                 if (data.boughtTeachers) game.boughtTeachers = data.boughtTeachers;
+                
+                // Cargar modos de juego (activeGameMode pendiente)
+                if (data.activeGameMode) game.activeGameMode = data.activeGameMode;
             }
             
             document.getElementById('welcomeScreen').classList.add('hidden');
@@ -933,6 +2300,9 @@
             
             initAchievements();
             initShop();
+            
+            // Mostrar estresómetro de estrés (evaluación diaria)
+            setTimeout(() => showStressModal(), 300);
         }
 
         function selectDifficulty(diff, btn) {
@@ -951,7 +2321,7 @@
             playSound(400, 0.1);
             
             game.mode = mode;
-            document.querySelectorAll('.btn.destruction, .btn.organization').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.btn.destruction, .btn.organization, .btn.pro').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
             
             checkPlayButtonVisibility();
@@ -963,6 +2333,16 @@
                 playButton.style.display = 'block';
             } else {
                 playButton.style.display = 'none';
+            }
+        }
+
+        function continueGame() {
+            initAudio();
+            playSound(400, 0.1);
+            if (loadSavedProgress()) {
+                document.getElementById('highScoreDisplay').classList.remove('hidden');
+                updateHighScore();
+                startRound();
             }
         }
 
@@ -1010,23 +2390,43 @@
             document.getElementById('hud').classList.remove('hidden');
             document.getElementById('gameArea').classList.remove('hidden');
             
+            // Update username in HUD
+            const hudUser = document.getElementById('hudUsername');
+            if (hudUser) hudUser.textContent = game.username || 'Jugador';
+            
+            // Mostrar estresómetro si ya se completó la evaluación
+            if (game.stressCheckedToday) {
+                document.getElementById('stressHUD').classList.add('visible');
+                updateStressHUD();
+            }
+            
             game.completed = 0;
             game.startTime = Date.now();
             game.isPaused = false; // Resetear pausa
             game.roundCompleting = false; // Resetear bandera de completación
+            game.scoreAtRoundStart = game.score; // Para calcular puntos de esta ronda
+            motivActionCount = 0; // Resetear contador de acciones al empezar ronda
             updateHUD();
             
             const area = document.getElementById('gameArea');
             area.innerHTML = '';
+            // Re-add motivCenterPopup (cleared by innerHTML = '')
+            area.insertAdjacentHTML('afterbegin', '<div id="motivCenterPopup"><div class="motiv-popup-inner"><div class="motiv-popup-text" id="motivPopupText" style="color:#f39c12;">¡Tú puedes!</div><div class="motiv-popup-stars" id="motivPopupStars">⭐⭐⭐</div></div></div>');
             
             if (game.mode === 'destruction') {
                 area.style.background = 'linear-gradient(135deg, #ffeaa7, #fdcb6e)';
+                const resetBtn = document.getElementById('resetBtn');
+                if (resetBtn) resetBtn.style.display = 'none';
                 createDestructionObjects();
             } else if (game.mode === 'organization') {
                 area.style.background = 'linear-gradient(135deg, #74b9ff, #a29bfe)';
+                const resetBtn = document.getElementById('resetBtn');
+                if (resetBtn) resetBtn.style.display = 'inline-block';
                 createOrganizationObjects();
             } else if (game.mode === 'pro') {
                 area.style.background = 'linear-gradient(135deg, #ff6b6b, #ee5a6f)';
+                const resetBtn = document.getElementById('resetBtn');
+                if (resetBtn) resetBtn.style.display = 'inline-block';
                 createProModeObjects();
             }
         }
@@ -1034,7 +2434,11 @@
         function createDestructionObjects() {
             const area = document.getElementById('gameArea');
             const settings = difficulties[game.difficulty];
-            let objects = ['📚', '📝', '📖', '📄', '📋', '🗂️', '📊', '💼', '📐', '🧮', '🔬', '🧪'];
+            // Use active game mode emojis if available
+            const activeMode = gameModes.find(m => m.id === game.activeGameMode);
+            let objects = (activeMode && activeMode.destructionEmojis)
+                ? [...activeMode.destructionEmojis]
+                : ['📚', '📝', '📖', '📄', '📋', '🗂️', '📊', '💼', '📐', '🧮', '🔬', '🧪'];
             
             // Agregar objetos comprados
             game.boughtItems.forEach(item => {
@@ -1067,7 +2471,7 @@
             }
             
             // Helper function to get valid random position
-            function getValidPosition() {
+            function getValidPosition(extraDistance = 0) {
                 const margin = 120;
                 const maxAttempts = 100; // Aumentado de 50 a 100 intentos
                 
@@ -1075,14 +2479,14 @@
                     const x = margin + Math.random() * (area.offsetWidth - margin * 2);
                     const y = margin + Math.random() * (area.offsetHeight - margin * 2);
                     
-                    if (isValidPosition(x, y)) {
+                    if (isValidPosition(x, y, 250 + extraDistance)) {
                         positions.push({ x, y });
                         return { x, y };
                     }
                 }
                 
                 // Fallback mejorado: intentar con distancia reducida gradualmente
-                for (let distance = 200; distance >= 150; distance -= 25) {
+                for (let distance = 200 + extraDistance; distance >= 150; distance -= 25) {
                     for (let attempt = 0; attempt < 50; attempt++) {
                         const x = margin + Math.random() * (area.offsetWidth - margin * 2);
                         const y = margin + Math.random() * (area.offsetHeight - margin * 2);
@@ -1124,22 +2528,20 @@
                 createObject(objects[Math.floor(Math.random() * objects.length)], false, false, pos.x, pos.y);
             }
             
-            // Bombs (no cuentan para totalObjects)
+            // Bombs (no cuentan para totalObjects) - Requieren MÁS espacio (100px extra)
             for (let i = 0; i < settings.bombs; i++) {
-                const pos = getValidPosition();
+                const pos = getValidPosition(100); // 100px de distancia EXTRA para bombas
                 createObject('💣', true, false, pos.x, pos.y);
             }
             
-            // Special (CUENTA para totalObjects)
-            let specialCreated = false;
+            // Special — da puntos extra pero NO cuenta en totalObjects
             if (Math.random() < settings.special) {
                 const pos = getValidPosition();
                 createObject(['⭐', '💎', '🏆', '👑'][Math.floor(Math.random() * 4)], false, true, pos.x, pos.y);
-                specialCreated = true;
             }
             
-            // Establecer el total correcto DESPUÉS de crear los objetos
-            game.totalObjects = baseObjects + (specialCreated ? 1 : 0);
+            // totalObjects = SOLO los objetos normales (sin especiales, sin bombas)
+            game.totalObjects = baseObjects;
             
             updateHUD();
         }
@@ -1231,7 +2633,15 @@
             points = Math.floor(points * settings.multiplier);
             
             game.score += points;
-            game.completed++;
+            
+            // IMPORTANTE: Solo incrementar completed si NO es especial ni bomba
+            // Los especiales solo dan puntos, no se cuentan en totalObjects
+            if (!isSpecial && !isBomb) {
+                game.completed++;
+                console.log('Destruido! completed:', game.completed, '/', game.totalObjects);
+            } else if (isSpecial) {
+                console.log('Especial destruido! (no cuenta en completed) - Solo +', points, 'puntos');
+            }
             
             checkAchievement('first', 1);
             checkAchievement('destroyer', 1); // Contador de objetos destruidos
@@ -1245,34 +2655,77 @@
             }
             
             showFloatingText(obj, `+${points} ${isSpecial ? '⭐' : '💥'}`, isSpecial ? '#FFD700' : '#e74c3c');
+            spawnMotivWord();
             obj.style.animation = 'explode 0.8s forwards';
             
             updateHUD();
             
             setTimeout(() => {
                 obj.remove();
-                // En modo PRO, NO terminar la ronda al destruir objetos
-                if (game.mode !== 'pro' && game.completed >= game.totalObjects) {
-                    setTimeout(() => roundComplete(), 500);
+                releaseShopItem(obj);
+                // Verificar si completó todos los objetos
+                if (game.completed >= game.totalObjects) {
+                    console.log('✅ TODOS LOS OBJETOS COMPLETADOS! Mode:', game.mode);
+                    
+                    if (game.mode === 'pro') {
+                        // FORZAR para modo PRO
+                        setTimeout(() => {
+                            document.getElementById('gameArea').classList.add('hidden');
+                            document.getElementById('hud').classList.add('hidden');
+                            
+                            const baseCoins = 10;
+                            const levelBonus = game.level * 5;
+                            const coinsEarned = baseCoins + levelBonus;
+                            game.coins += coinsEarned;
+                            savePermanentData();
+                            
+                            document.getElementById('endTitle').textContent = '🎉 ¡Ronda Completada! 🎉';
+                            document.getElementById('endMessage').textContent = '🔥 ¡INCREÍBLE! Destruiste y organizaste todo en modo PRO!';
+                            document.getElementById('endScore').textContent = `Puntuación: ${game.score}`;
+                            document.getElementById('endCoins').textContent = `¡Ganaste ${coinsEarned} monedas! 💰`;
+                            
+                            document.getElementById('endScreen').classList.remove('hidden');
+                            game.roundCompleting = false;
+                            updateHUD();
+                            
+                            playSound(523, 0.15);
+                            setTimeout(() => playSound(659, 0.15), 150);
+                            setTimeout(() => playSound(784, 0.15), 300);
+                        }, 300);
+                    } else {
+                        setTimeout(() => roundComplete(), 500);
+                    }
                 }
             }, 800);
         }
 
         function createOrganizationObjects() {
             const area = document.getElementById('gameArea');
-            const categories = {
-                matematicas: ['📐', '🧮', '📏', '📊'],
-                ciencias: ['🔬', '🧪', '🧬', '⚗️'],
-                literatura: ['📚', '📖', '✍️', '📜'],
-                profesores: ['👨‍🏫', '👩‍🏫', '🧑‍🏫']
-            };
+            
+            // Usar modo activo si está disponible, si no usar clásico
+            const activeMode = getActiveGameModeCategories();
+            let categoriesData;
+            
+            if (activeMode) {
+                categoriesData = activeMode;
+            } else {
+                categoriesData = {
+                    matematicas: { icon: '🔢', label: 'Matemáticas', emojis: ['📐', '🧮', '📏', '📊'] },
+                    ciencias:    { icon: '🧬', label: 'Ciencias',    emojis: ['🔬', '🧪', '🧬', '⚗️'] },
+                    literatura:  { icon: '📚', label: 'Literatura',  emojis: ['📚', '📖', '✍️', '📜'] },
+                    profesores:  { icon: '🧑', label: 'Profesores', emojis: ['🧑', '👩', '🧔', '👱'] }
+                };
+            }
             
             game.totalObjects = 0;
             const perCategory = 2 + Math.floor(game.round / 3);
             
-            Object.keys(categories).forEach(cat => {
-                const emojis = categories[cat];
-                for (let i = 0; i < Math.min(perCategory, emojis.length); i++) {
+            Object.keys(categoriesData).forEach(cat => {
+                const catData = categoriesData[cat];
+                const emojis = catData.emojis || catData; // support both formats
+                // Usar min para no repetir emojis y evitar confusión
+                const count = Math.min(perCategory, emojis.length);
+                for (let i = 0; i < count; i++) {
                     const obj = document.createElement('div');
                     obj.className = 'organizable';
                     obj.textContent = emojis[i];
@@ -1289,9 +2742,14 @@
                         playSound(400, 0.1);
                     };
                     
-                    obj.ondragend = () => {
+                    obj.ondragend = (e) => {
                         obj.classList.remove('dragging');
                         document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('drag-over'));
+                        // Si no se soltó en una zona válida, restaurar animación
+                        if (obj.parentElement && Math.random() < 0.4) {
+                            obj.style.animation = '';
+                        }
+                        game.dragging = null;
                     };
                     
                     area.appendChild(obj);
@@ -1299,51 +2757,107 @@
                 }
             });
             
-            // Create drop zones
+            // Create drop zones dinámicamente según el modo activo
             const zones = document.createElement('div');
             zones.id = 'dropZones';
-            zones.innerHTML = `
-                <div class="drop-zone" data-category="matematicas">
-                    <div class="zone-icon">🔢</div>
-                    <div class="zone-label">Matemáticas</div>
-                </div>
-                <div class="drop-zone" data-category="ciencias">
-                    <div class="zone-icon">🧬</div>
-                    <div class="zone-label">Ciencias</div>
-                </div>
-                <div class="drop-zone" data-category="literatura">
-                    <div class="zone-icon">📚</div>
-                    <div class="zone-label">Literatura</div>
-                </div>
-                <div class="drop-zone" data-category="profesores">
-                    <div class="zone-icon">👨‍🏫</div>
-                    <div class="zone-label">Profesores</div>
-                </div>
-            `;
+            let zonesHTML = '';
+            Object.keys(categoriesData).forEach(cat => {
+                const catData = categoriesData[cat];
+                zonesHTML += `
+                <div class="drop-zone" data-category="${cat}">
+                    <div class="zone-icon">${catData.icon || '🎁'}</div>
+                    <div class="zone-label">${catData.label || cat}</div>
+                </div>`;
+            });
+            // Add objetos zone if not in active mode (only classic has objetos as extra)
+            if (!activeMode) {
+                zonesHTML += `
+                <div class="drop-zone" data-category="objetos">
+                    <div class="zone-icon">🎁</div>
+                    <div class="zone-label">Objetos</div>
+                </div>`;
+            }
+            zones.innerHTML = zonesHTML;
             
             area.appendChild(zones);
+            
+            // Guardar referencias originales del depósito de objetos
+            const objetosZone = document.querySelector('.drop-zone[data-category="objetos"]');
+            let originalIcon = '🎁';
+            let originalLabel = 'Objetos';
             
             document.querySelectorAll('.drop-zone').forEach(zone => {
                 zone.ondragover = (e) => {
                     e.preventDefault();
                     zone.classList.add('drag-over');
+                    
+                    // Si es el depósito de objetos y hay algo siendo arrastrado
+                    if (zone.dataset.category === 'objetos' && game.dragging) {
+                        const draggingCategory = game.dragging.dataset.category;
+                        if (draggingCategory === 'objetos') {
+                            // Obtener la categoría original de la tienda
+                            const shopCategory = game.dragging.dataset.shopCategory;
+                            if (shopCategory) {
+                                // Usar la función para obtener el nombre y emoji correctos
+                                const display = getCategoryDisplay(shopCategory);
+                                const icon = zone.querySelector('.zone-icon');
+                                const label = zone.querySelector('.zone-label');
+                                icon.textContent = display.emoji;
+                                label.textContent = display.name;
+                            } else {
+                                // Si no tiene shopCategory (objetos viejos), usar el emoji del objeto
+                                const icon = zone.querySelector('.zone-icon');
+                                const label = zone.querySelector('.zone-label');
+                                icon.textContent = game.dragging.textContent;
+                                label.textContent = game.dragging.textContent;
+                            }
+                        }
+                    }
                 };
                 
                 zone.ondragleave = () => {
                     zone.classList.remove('drag-over');
+                    
+                    // Restaurar el depósito de objetos a su estado original
+                    if (zone.dataset.category === 'objetos') {
+                        const icon = zone.querySelector('.zone-icon');
+                        const label = zone.querySelector('.zone-label');
+                        icon.textContent = originalIcon;
+                        label.textContent = originalLabel;
+                    }
                 };
                 
                 zone.ondrop = (e) => {
                     e.preventDefault();
                     zone.classList.remove('drag-over');
                     
-                    if (!game.dragging) return;
+                    // Restaurar el depósito de objetos a su estado original
+                    if (zone.dataset.category === 'objetos') {
+                        const icon = zone.querySelector('.zone-icon');
+                        const label = zone.querySelector('.zone-label');
+                        icon.textContent = originalIcon;
+                        label.textContent = originalLabel;
+                    }
                     
-                    // Prevenir procesamiento doble
-                    if (game.dragging.dataset.processed === 'true') return;
-                    game.dragging.dataset.processed = 'true';
+                    if (!game.dragging) {
+                        console.log('❌ No hay objeto siendo arrastrado');
+                        return;
+                    }
+                    
+                    console.log('📦 Intento de drop - Objeto categoría:', game.dragging.dataset.category, '- Zona categoría:', zone.dataset.category);
+                    
+                    // Prevenir procesamiento doble solo si YA FUE EXITOSO
+                    if (game.dragging.dataset.processed === 'true') {
+                        console.log('⚠️ Objeto ya procesado exitosamente');
+                        return;
+                    }
                     
                     if (game.dragging.dataset.category === zone.dataset.category) {
+                        console.log('✅ ¡Categoría coincide! Procesando...');
+                        
+                        // SOLO AHORA marcamos como procesado porque fue exitoso
+                        game.dragging.dataset.processed = 'true';
+                        
                         playSound(523, 0.1);
                         playSound(659, 0.1);
                         
@@ -1355,17 +2869,65 @@
                         checkAchievement('organizer', 1);
                         
                         showFloatingText(zone, `+${points} ✨`, '#4CAF50');
-                        game.dragging.remove();
+                        spawnMotivWord();
+                        const objToRemove = game.dragging;
+                        game.dragging = null;
+                        setTimeout(() => {
+                            if (objToRemove && objToRemove.parentElement) {
+                                objToRemove.remove();
+                                releaseShopItem(objToRemove);
+                            }
+                        }, 50);
                         
                         updateHUD();
                         
                         if (game.completed >= game.totalObjects) {
                             console.log('🎉 RONDA PRO COMPLETADA! completed:', game.completed, 'totalObjects:', game.totalObjects);
-                            setTimeout(() => roundComplete(), 500);
+                            
+                            // FORZAR mostrar endScreen inmediatamente
+                            setTimeout(() => {
+                                // Ocultar área de juego
+                                document.getElementById('gameArea').classList.add('hidden');
+                                document.getElementById('hud').classList.add('hidden');
+                                
+                                // Calcular monedas
+                                const baseCoins = 10;
+                                const levelBonus = game.level * 5;
+                                const coinsEarned = baseCoins + levelBonus;
+                                game.coins += coinsEarned;
+                                
+                                // Guardar datos
+                                savePermanentData();
+                                
+                                // Configurar mensajes
+                                document.getElementById('endTitle').textContent = '🎉 ¡Ronda Completada! 🎉';
+                                document.getElementById('endMessage').textContent = '🔥 ¡INCREÍBLE! Destruiste y organizaste todo en modo PRO!';
+                                document.getElementById('endScore').textContent = `Puntuación: ${game.score}`;
+                                document.getElementById('endCoins').textContent = `¡Ganaste ${coinsEarned} monedas! 💰`;
+                                
+                                // MOSTRAR endScreen
+                                document.getElementById('endScreen').classList.remove('hidden');
+                                
+                                // Resetear bandera
+                                game.roundCompleting = false;
+                                
+                                updateHUD();
+                                
+                                playSound(523, 0.15);
+                                setTimeout(() => playSound(659, 0.15), 150);
+                                setTimeout(() => playSound(784, 0.15), 300);
+                                
+                                console.log('✅ endScreen mostrado forzadamente');
+                            }, 500);
                         } else {
                             console.log('Aún no completa. completed:', game.completed, 'totalObjects:', game.totalObjects);
                         }
                     } else {
+                        console.log('❌ Categoría NO coincide - Objeto:', game.dragging.dataset.category, 'vs Zona:', zone.dataset.category);
+                        
+                        // NO marcar como procesado para que pueda intentar de nuevo
+                        game.dragging.dataset.processed = 'false';
+                        
                         playSound(200, 0.3);
                         game.errorsCommitted++;
                         game.lives--;
@@ -1404,21 +2966,17 @@
             const area = document.getElementById('gameArea');
             const settings = difficulties[game.difficulty];
             
-            // Inicializar contador de objetos
-            game.totalObjects = 0;
+            // Resetear totalObjects a un valor alto para evitar completitud prematura
+            game.totalObjects = 9999;
             
             // MODO PRO: ¡Caos total! Destrucción + Organización + Movimiento + Sorpresas
             
             // === OBJETOS DESTRUCTIBLES QUE SE MUEVEN ===
-            let destructibleEmojis = ['📚', '📝', '📖', '📄', '📋', '🗂️', '📊', '💼', '🎒', '✏️'];
-            
-            // Agregar objetos y profesores comprados
-            game.boughtItems.forEach(item => {
-                if (!destructibleEmojis.includes(item.emoji)) destructibleEmojis.push(item.emoji);
-            });
-            game.boughtTeachers.forEach(teacher => {
-                if (!destructibleEmojis.includes(teacher.emoji)) destructibleEmojis.push(teacher.emoji);
-            });
+            // Usar emojis del modo activo si hay uno, si no los clásicos
+            const activeModeObj = gameModes.find(m => m.id === game.activeGameMode);
+            let destructibleEmojis = (activeModeObj && activeModeObj.destructionEmojis)
+                ? activeModeObj.destructionEmojis
+                : ['📚', '📝', '📖', '📄', '📋', '🗂️', '📊', '💼', '🎒', '✏️'];
             const destructibleCount = Math.floor((settings.objects + game.round) * 0.6);
             
             const positions = [];
@@ -1534,37 +3092,35 @@
             }
             
             // === OBJETOS PARA ORGANIZAR (MÁS ARRIBA para no quedar detrás de zonas) ===
-            const categories = {
-                matematicas: ['📐', '🧮', '📏', '📊'],
-                ciencias: ['🔬', '🧪', '⚗️', '🧬'],
-                literatura: ['📚', '📖', '✍️', '📜'],
-                profesores: ['👨‍🏫', '👩‍🏫', '🧑‍🏫', '👨‍🎓']
-            };
+            // Usar modo activo si está disponible
+            const activeMode = getActiveGameModeCategories();
+            let categoriesData;
             
-            // Agregar objetos comprados
-            if (game.boughtItems.length > 0) {
-                categories.objetos = game.boughtItems.map(item => item.emoji);
+            if (activeMode) {
+                categoriesData = activeMode;
+            } else {
+                categoriesData = {
+                    matematicas: { icon: '🔢', label: 'Mates',    emojis: ['📐', '🧮', '📏', '📊'] },
+                    ciencias:    { icon: '🧬', label: 'Ciencias',  emojis: ['🔬', '🧪', '⚗️', '🧬'] },
+                    literatura:  { icon: '📚', label: 'Literatura',emojis: ['📚', '📖', '✍️', '📜'] },
+                    profesores:  { icon: '🧑', label: 'Profes',   emojis: ['🧑', '👩', '🧔', '👴'] }
+                };
             }
             
-            // Agregar profesores comprados
-            game.boughtTeachers.forEach(teacher => {
-                if (!categories.profesores.includes(teacher.emoji)) {
-                    categories.profesores.push(teacher.emoji);
-                }
-            });
-            
-            // En modo PRO, solo contamos los organizables (los destructibles no cuentan para terminar la ronda)
-            game.totalObjects = 0;
+            // En modo PRO, totalObjects se calculará al final después de crear todos los organizables
             
             const perCategory = 2 + Math.floor(game.round / 4);
             
-            Object.keys(categories).forEach(cat => {
-                const emojis = categories[cat];
-                for (let i = 0; i < Math.min(perCategory, emojis.length); i++) {
+            Object.keys(categoriesData).forEach(cat => {
+                const catData = categoriesData[cat];
+                const emojis = catData.emojis || catData;
+                const count = Math.min(perCategory, emojis.length);
+                for (let i = 0; i < count; i++) {
                     const obj = document.createElement('div');
                     obj.className = 'organizable';
                     obj.textContent = emojis[i];
                     obj.dataset.category = cat;
+                    obj.dataset.processed = 'false'; // IMPORTANTE: Marcar como no procesado al inicio
                     obj.draggable = true;
                     
                     // Posición MÁS ARRIBA para que no queden detrás de las zonas de drop
@@ -1588,56 +3144,118 @@
                     obj.ondragend = () => {
                         obj.classList.remove('dragging');
                         document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('drag-over'));
+                        restoreObjectsZone();
                     };
                     
                     area.appendChild(obj);
                 }
             });
             
-            // === CREAR ZONAS DE DROP (4 categorías incluyendo profesores) ===
+            // === CREAR ZONAS DE DROP dinámicamente según modo activo ===
             const zones = document.createElement('div');
             zones.id = 'dropZones';
-            zones.innerHTML = `
-                <div class="drop-zone" data-category="matematicas" style="left: 20px; width: 180px;">
-                    <div class="zone-icon">🔢</div>
-                    <div class="zone-label">Mates</div>
-                </div>
-                <div class="drop-zone" data-category="ciencias" style="left: 220px; width: 180px;">
-                    <div class="zone-icon">🧬</div>
-                    <div class="zone-label">Ciencias</div>
-                </div>
-                <div class="drop-zone" data-category="literatura" style="left: 420px; width: 180px;">
-                    <div class="zone-icon">📚</div>
-                    <div class="zone-label">Literatura</div>
-                </div>
-                <div class="drop-zone" data-category="profesores" style="right: 20px; width: 180px;">
-                    <div class="zone-icon">👨‍🏫</div>
-                    <div class="zone-label">Profes</div>
-                </div>
-            `;
+            const catKeys = Object.keys(categoriesData);
+            let proZonesHTML = '';
+            const zoneWidth = Math.min(160, Math.floor(900 / catKeys.length));
+            catKeys.forEach((cat, idx) => {
+                const catData = categoriesData[cat];
+                const leftPos = 20 + idx * (zoneWidth + 10);
+                proZonesHTML += `
+                <div class="drop-zone" data-category="${cat}" style="left: ${leftPos}px; width: ${zoneWidth}px;">
+                    <div class="zone-icon">${catData.icon || '🎁'}</div>
+                    <div class="zone-label">${catData.label || cat}</div>
+                </div>`;
+            });
+            // Add objetos zone only in classic mode
+            if (!activeMode) {
+                proZonesHTML += `
+                <div class="drop-zone" data-category="objetos" style="right: 20px; width: ${zoneWidth}px;">
+                    <div class="zone-icon">🎁</div>
+                    <div class="zone-label">Objetos</div>
+                </div>`;
+            }
+            zones.innerHTML = proZonesHTML;
             
             area.appendChild(zones);
+            
+            // Guardar referencias originales del depósito de objetos
+            const objetosZone = document.querySelector('.drop-zone[data-category="objetos"]');
+            let originalIcon = '🎁';
+            let originalLabel = 'Objetos';
             
             // Configurar eventos de las zonas
             document.querySelectorAll('.drop-zone').forEach(zone => {
                 zone.ondragover = (e) => {
                     e.preventDefault();
                     zone.classList.add('drag-over');
+                    
+                    // Si es el depósito de objetos y hay algo siendo arrastrado
+                    if (zone.dataset.category === 'objetos' && game.dragging) {
+                        const draggingCategory = game.dragging.dataset.category;
+                        if (draggingCategory === 'objetos') {
+                            // Obtener la categoría original de la tienda
+                            const shopCategory = game.dragging.dataset.shopCategory;
+                            if (shopCategory) {
+                                // Usar la función para obtener el nombre y emoji correctos
+                                const display = getCategoryDisplay(shopCategory);
+                                const icon = zone.querySelector('.zone-icon');
+                                const label = zone.querySelector('.zone-label');
+                                icon.textContent = display.emoji;
+                                label.textContent = display.name;
+                            } else {
+                                // Si no tiene shopCategory (objetos viejos), usar el emoji del objeto
+                                const icon = zone.querySelector('.zone-icon');
+                                const label = zone.querySelector('.zone-label');
+                                icon.textContent = game.dragging.textContent;
+                                label.textContent = game.dragging.textContent;
+                            }
+                        }
+                    }
                 };
                 
                 zone.ondragleave = () => {
                     zone.classList.remove('drag-over');
+                    
+                    // Restaurar el depósito de objetos a su estado original
+                    if (zone.dataset.category === 'objetos') {
+                        const icon = zone.querySelector('.zone-icon');
+                        const label = zone.querySelector('.zone-label');
+                        icon.textContent = originalIcon;
+                        label.textContent = originalLabel;
+                    }
                 };
                 
                 zone.ondrop = (e) => {
                     e.preventDefault();
                     zone.classList.remove('drag-over');
                     
-                    if (!game.dragging) return;
-                    if (game.dragging.dataset.processed === 'true') return;
-                    game.dragging.dataset.processed = 'true';
+                    // Restaurar el depósito de objetos a su estado original
+                    if (zone.dataset.category === 'objetos') {
+                        const icon = zone.querySelector('.zone-icon');
+                        const label = zone.querySelector('.zone-label');
+                        icon.textContent = originalIcon;
+                        label.textContent = originalLabel;
+                    }
+                    
+                    if (!game.dragging) {
+                        console.log('❌ No hay objeto siendo arrastrado (PRO)');
+                        return;
+                    }
+                    
+                    console.log('📦 PRO - Intento de drop - Objeto categoría:', game.dragging.dataset.category, '- Zona categoría:', zone.dataset.category);
+                    
+                    // Prevenir procesamiento doble solo si YA FUE EXITOSO
+                    if (game.dragging.dataset.processed === 'true') {
+                        console.log('⚠️ Objeto ya procesado exitosamente (PRO)');
+                        return;
+                    }
                     
                     if (game.dragging.dataset.category === zone.dataset.category) {
+                        console.log('✅ ¡Categoría coincide en PRO! Procesando...');
+                        
+                        // SOLO AHORA marcamos como procesado porque fue exitoso
+                        game.dragging.dataset.processed = 'true';
+                        
                         playSound(523, 0.1);
                         playSound(659, 0.1);
                         
@@ -1651,22 +3269,65 @@
                         checkAchievement('organizer', 1);
                         
                         showFloatingText(zone, `+${points} 🔥`, '#FFD700');
-                        
-                        // Animación de éxito
                         zone.style.transform = 'scale(1.1)';
                         setTimeout(() => zone.style.transform = 'scale(1)', 200);
                         
-                        game.dragging.remove();
+                        // Remover el objeto del DOM
+                        const objToRemove = game.dragging;
+                        game.dragging = null;
+                        setTimeout(() => {
+                            if (objToRemove && objToRemove.parentElement) {
+                                objToRemove.remove();
+                                releaseShopItem(objToRemove);
+                            }
+                        }, 50);
                         
                         updateHUD();
                         
                         if (game.completed >= game.totalObjects) {
                             console.log('🎉 RONDA PRO COMPLETADA! completed:', game.completed, 'totalObjects:', game.totalObjects);
-                            setTimeout(() => roundComplete(), 500);
+                            
+                            // FORZAR mostrar endScreen inmediatamente
+                            setTimeout(() => {
+                                // Ocultar área de juego
+                                document.getElementById('gameArea').classList.add('hidden');
+                                document.getElementById('hud').classList.add('hidden');
+                                
+                                // Calcular monedas
+                                const baseCoins = 10;
+                                const levelBonus = game.level * 5;
+                                const coinsEarned = baseCoins + levelBonus;
+                                game.coins += coinsEarned;
+                                
+                                // Guardar datos
+                                savePermanentData();
+                                
+                                // Configurar mensajes
+                                document.getElementById('endTitle').textContent = '🎉 ¡Ronda Completada! 🎉';
+                                document.getElementById('endMessage').textContent = '🔥 ¡INCREÍBLE! Destruiste y organizaste todo en modo PRO!';
+                                document.getElementById('endScore').textContent = `Puntuación: ${game.score}`;
+                                document.getElementById('endCoins').textContent = `¡Ganaste ${coinsEarned} monedas! 💰`;
+                                
+                                // MOSTRAR endScreen
+                                document.getElementById('endScreen').classList.remove('hidden');
+                                
+                                // Resetear bandera
+                                game.roundCompleting = false;
+                                
+                                updateHUD();
+                                
+                                playSound(523, 0.15);
+                                setTimeout(() => playSound(659, 0.15), 150);
+                                setTimeout(() => playSound(784, 0.15), 300);
+                                
+                                console.log('✅ endScreen mostrado forzadamente');
+                            }, 500);
                         } else {
                             console.log('Aún no completa. completed:', game.completed, 'totalObjects:', game.totalObjects);
                         }
                     } else {
+                        console.log('❌ PRO - Categoría NO coincide - Objeto:', game.dragging.dataset.category, 'vs Zona:', zone.dataset.category);
+                        
                         playSound(200, 0.3);
                         game.errorsCommitted++;
                         game.lives--;
@@ -1676,8 +3337,12 @@
                         
                         showFloatingText(zone, '❌ ERROR!', '#e74c3c');
                         
-                        // Devolver el objeto a su posición original (más difícil)
+                        // NO marcar como procesado para que pueda intentar de nuevo
+                        game.dragging.dataset.processed = 'false';
+                        
+                        // Devolver el objeto a su posición original y hacerlo visible
                         game.dragging.style.animation = 'moveAround 4s ease-in-out infinite';
+                        game.dragging.style.opacity = '1';
                         
                         if (pointsLost > 0) {
                             setTimeout(() => {
@@ -1736,14 +3401,34 @@
             motivation.textContent = '🔥 MODO PRO: ¡Destruye Y Organiza! 🔥';
             area.appendChild(motivation);
             
-            // En modo PRO, contar solo los objetos organizables para completar la ronda
-            const organizables = document.querySelectorAll('.organizable');
-            game.totalObjects = organizables.length;
+            // En modo PRO, contar DESTRUCTIBLES (sin bombas ni especiales) + ORGANIZABLES NO PROCESADOS
+            const allOrganizables = document.querySelectorAll('.organizable');
+            let organizablesCount = 0;
+            console.log('📊 Contando organizables...');
+            allOrganizables.forEach(obj => {
+                console.log('  - Organizable:', obj.textContent, 'processed:', obj.dataset.processed);
+                // Solo contar los que NO han sido procesados
+                if (obj.dataset.processed !== 'true') {
+                    organizablesCount++;
+                }
+            });
+            
+            // NO contar .bomb ni .special, solo destructibles normales
+            const allDestructibles = document.querySelectorAll('.destructible');
+            let normalDestructibles = 0;
+            console.log('📊 Contando destructibles...');
+            allDestructibles.forEach(obj => {
+                console.log('  - Destructible:', obj.textContent, 'bomb:', obj.dataset.bomb, 'special:', obj.dataset.special);
+                if (obj.dataset.bomb === 'false' && obj.dataset.special === 'false') {
+                    normalDestructibles++;
+                }
+            });
+            game.totalObjects = organizablesCount + normalDestructibles;
             
             console.log('=== MODO PRO INICIADO ===');
-            console.log('Total destructibles:', document.querySelectorAll('.destructible').length);
-            console.log('Total organizables:', organizables.length);
-            console.log('game.totalObjects:', game.totalObjects);
+            console.log('Total destructibles NORMALES (sin bombas ni especiales):', normalDestructibles);
+            console.log('Total organizables NO PROCESADOS:', organizablesCount);
+            console.log('game.totalObjects = destructibles + organizables =', game.totalObjects);
             console.log('game.completed:', game.completed);
             console.log('========================');
             
@@ -1776,12 +3461,25 @@
             // Verificar logros de monedas
             if (game.coins >= 500) checkAchievement('coins', 1);
             if (game.coins >= 1000) checkAchievement('millionaire', 1);
+
+            // Refrescar tienda si está abierta (habilita botones de compra en tiempo real)
+            const shopPanel = document.getElementById('shopPanel');
+            if (shopPanel && !shopPanel.classList.contains('hidden')) {
+                initShop();
+            }
         }
 
         function roundComplete() {
+            console.log('🎉 roundComplete() llamada');
+            console.log('game.roundCompleting:', game.roundCompleting);
+            
             // Evitar llamadas múltiples
-            if (game.roundCompleting) return;
+            if (game.roundCompleting) {
+                console.log('⚠️ roundComplete ya está ejecutándose, ignorando...');
+                return;
+            }
             game.roundCompleting = true;
+            console.log('✅ Procesando roundComplete...');
             
             playSound(523, 0.15);
             setTimeout(() => playSound(659, 0.15), 150);
@@ -1804,6 +3502,9 @@
             // Contador de rondas completadas
             checkAchievement('marathoner', 1);
             
+            // Actualizar estresómetro de estrés con puntos de esta ronda
+            addStressPoints(Math.max(0, game.score - game.scoreAtRoundStart)); // Solo puntos de esta ronda
+            
             // Calcular monedas correctamente
             const baseCoins = 10;
             const levelBonus = game.level * 5;
@@ -1823,10 +3524,11 @@
             // Mensaje fijo según el modo (no aleatorio)
             const messages = {
                 destruction: '💥 ¡Excelente! Estrés liberado con éxito.',
-                organization: '✨ ¡Perfecto! Todo está en orden.'
+                organization: '✨ ¡Perfecto! Todo está en orden.',
+                pro: '🔥 ¡INCREÍBLE! Destruiste y organizaste todo en modo PRO!'
             };
             
-            document.getElementById('endMessage').textContent = messages[game.mode];
+            document.getElementById('endMessage').textContent = messages[game.mode] || messages.pro;
             document.getElementById('endScore').textContent = `Puntuación: ${game.score}`;
             document.getElementById('endCoins').textContent = `¡Ganaste ${coinsEarned} monedas! 💰`;
             
@@ -1845,7 +3547,15 @@
                 document.getElementById('endTitle').textContent = '🎉 ¡Ronda Completada! 🎉';
             }
             
+            console.log('🎯 Mostrando endScreen...');
+            console.log('gameArea hidden:', document.getElementById('gameArea').classList.contains('hidden'));
+            console.log('hud hidden:', document.getElementById('hud').classList.contains('hidden'));
+            
             document.getElementById('endScreen').classList.remove('hidden');
+            
+            console.log('endScreen hidden después de remove:', document.getElementById('endScreen').classList.contains('hidden'));
+            console.log('endScreen display:', window.getComputedStyle(document.getElementById('endScreen')).display);
+            
             updateHUD();
         }
 
@@ -1874,6 +3584,10 @@
             } else {
                 game.round++;
             }
+            
+            // El modo especial solo aplica para UNA ronda, luego vuelve al clásico
+            game.activeGameMode = null;
+            savePermanentData();
             
             // Guardar progreso automáticamente
             saveProgress();
@@ -1953,16 +3667,18 @@
             }
         }
 
-        function unlockAchievement(ach) {
-            playSound(659, 0.1);
-            setTimeout(() => playSound(784, 0.1), 100);
-            setTimeout(() => playSound(880, 0.1), 200);
-            
-            game.coins += ach.reward;
-            updateHUD();
-            
-            // Guardar datos permanentes
-            savePermanentData();
+        // Cola de logros para mostrar uno tras otro
+        let achievementQueue = [];
+        let isShowingAchievement = false;
+
+        function processAchievementQueue() {
+            if (achievementQueue.length === 0) {
+                isShowingAchievement = false;
+                return;
+            }
+
+            isShowingAchievement = true;
+            const ach = achievementQueue.shift();
             
             const div = document.getElementById('ach-' + ach.id);
             if (div) div.classList.add('unlocked');
@@ -1985,6 +3701,11 @@
                 notif.style.opacity = '0';
                 notif.style.transform = 'translate(-50%, -50%) scale(0)';
                 stopFireworks();
+                
+                // Esperar 500ms antes de mostrar el siguiente logro
+                setTimeout(() => {
+                    processAchievementQueue();
+                }, 500);
             }, 3000);
             
             showFloatingText(
@@ -1992,6 +3713,24 @@
                 `🏆 ${ach.title}`,
                 '#FFD700'
             );
+        }
+
+        function unlockAchievement(ach) {
+            playSound(659, 0.1);
+            setTimeout(() => playSound(784, 0.1), 100);
+            setTimeout(() => playSound(880, 0.1), 200);
+            
+            game.coins += ach.reward;
+            updateHUD();
+            
+            // Guardar datos permanentes
+            savePermanentData();
+            
+            // Agregar a la cola en lugar de mostrar inmediatamente
+            achievementQueue.push(ach);
+            if (!isShowingAchievement) {
+                processAchievementQueue();
+            }
         }
 
         // Sistema de fuegos artificiales
@@ -2114,7 +3853,10 @@
 
         function toggleAchievements() {
             playSound(400, 0.1);
+            // Cerrar tienda si está abierta (mismo lado)
+            document.getElementById('shopPanel').classList.add('hidden');
             document.getElementById('achievementsPanel').classList.toggle('hidden');
+            initAchievements();
         }
 
         function switchShopTab(tab) {
@@ -2201,7 +3943,7 @@
             } else if (game.currentShopTab === 'teachers') {
                 // Mostrar profesores
                 const catDiv = document.createElement('div');
-                catDiv.innerHTML = '<h4 style="color: var(--accent); margin-bottom: 10px;">👨‍🏫 Profesores</h4>';
+                catDiv.innerHTML = '<h4 style="color: var(--accent); margin-bottom: 10px;">🧑 Profesores</h4>';
                 
                 const teachersGrid = document.createElement('div');
                 teachersGrid.style.display = 'grid';
@@ -2298,6 +4040,54 @@
                     div.appendChild(btn);
                     content.appendChild(div);
                 });
+            } else if (game.currentShopTab === 'modes') {
+                // Modos consumibles: se compran, se usan en el siguiente round, se gastan
+                const sortedModes = [...gameModes].sort((a, b) => a.price - b.price);
+
+                if (game.activeGameMode) {
+                    const queued = gameModes.find(m => m.id === game.activeGameMode);
+                    if (queued) {
+                        const notice = document.createElement('div');
+                        notice.style.cssText = 'background:rgba(39,174,96,0.15);border:1px solid #27ae60;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:0.85em;color:#27ae60;font-weight:bold;text-align:center;';
+                        notice.textContent = '\u23f3 ' + queued.name + ' se activar\u00e1 en el pr\u00f3ximo round';
+                        content.appendChild(notice);
+                    }
+                }
+
+                sortedModes.forEach(mode => {
+                    const div = document.createElement('div');
+                    div.className = 'mode-shop-item';
+                    const isQueued = game.activeGameMode === mode.id;
+                    if (isQueued) div.classList.add('active-mode');
+
+                    const statusTag = isQueued
+                        ? '<span style="color:#27ae60;font-weight:bold;">\u23f3 En cola</span>'
+                        : `<span style="color:#f39c12;font-weight:bold;">${mode.price} \ud83d\udcb0</span>`;
+
+                    div.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <h4>${mode.name}</h4>
+                                <p>${mode.desc}</p>
+                            </div>
+                            <div style="text-align:right; min-width:70px;">${statusTag}</div>
+                        </div>
+                    `;
+
+                    const btnArea = document.createElement('div');
+                    btnArea.style.marginTop = '6px';
+
+                    const buyBtn = document.createElement('button');
+                    buyBtn.className = 'buy-btn';
+                    buyBtn.textContent = isQueued ? '\u2713 Seleccionado' : 'Comprar';
+                    buyBtn.disabled = isQueued || game.coins < mode.price;
+                    buyBtn.style.fontSize = '0.85em';
+                    if (!isQueued) buyBtn.onclick = () => buyGameMode(mode.id);
+                    btnArea.appendChild(buyBtn);
+
+                    div.appendChild(btnArea);
+                    content.appendChild(div);
+                });
             }
         }
         
@@ -2307,25 +4097,68 @@
                 game.coins -= item.price;
                 item.owned = true;
                 
-                // Agregar al inventario
-                game.boughtItems.push({ emoji: item.emoji, name: item.name, category });
+                // Mapear categoría de tienda a categoría de juego
+                const gameCategory = getCategoryMapping(category);
+                
+                // Agregar al inventario con AMBAS categorías: la del juego y la original de la tienda
+                game.boughtItems.push({ 
+                    emoji: item.emoji, 
+                    name: item.name, 
+                    category: gameCategory,
+                    shopCategory: category  // Guardar categoría original para mostrar en depósito
+                });
                 
                 updateHUD();
                 checkAchievement('shopaholic', 1);
                 savePermanentData();
                 initShop();
                 
-                alert(`✅ ¡Compraste ${item.name}! Ahora aparecerá en tus partidas.`);
+                // Hacer aparecer el objeto inmediatamente en la ronda actual si hay un juego activo
+                if (!game.gameOver && document.getElementById('gameArea').children.length > 0) {
+                    spawnBoughtItemImmediately(item, gameCategory, category);
+                }
+                
+                showShopToast('✅ ¡' + item.name + ' comprado!');
             }
         }
         
+        function startTeacherRoam(obj, area) {
+            obj.classList.add('teacher-roam');
+            const interval = 600 + Math.floor(Math.random() * 700);
+            const roamId = setInterval(() => {
+                if (!obj.parentNode) { clearInterval(roamId); return; }
+                if (game.isPaused) return;
+                const margin = 55;
+                const maxX = (area.offsetWidth  || 900) - margin * 2;
+                const maxY = (area.offsetHeight || 560) - margin * 2 - 120;
+                obj.style.left = (margin + Math.random() * maxX) + 'px';
+                obj.style.top  = (margin + Math.random() * maxY) + 'px';
+            }, interval);
+            obj.dataset.roamId = roamId;
+        }
+
+        function showTeacherWarning(message, color, isDestruction) {
+            const warn = document.createElement('div');
+            const icon = isDestruction ? '💀' : '😱';
+            warn.innerHTML = `<div style="font-size:2em;margin-bottom:6px;display:inline-block;animation:wBounce 0.35s ease-in-out infinite alternate;">${icon}</div><div style="white-space:pre-line;line-height:1.5;">${message}</div>`;
+            warn.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:${isDestruction?'linear-gradient(135deg,#7b0000,#c0392b)':'linear-gradient(135deg,#7f3f00,#e65c00)'};color:white;padding:26px 38px;border-radius:22px;font-size:1.35em;font-weight:bold;text-align:center;z-index:3000;border:3px solid ${color};box-shadow:0 0 0 6px ${color}44,0 0 50px ${color}88;max-width:400px;font-family:inherit;opacity:0;pointer-events:none;transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1),opacity 0.35s;`;
+            if (!document.getElementById('_wBounce')) {
+                const s = document.createElement('style');
+                s.id = '_wBounce';
+                s.textContent = '@keyframes wBounce{from{transform:scale(1)}to{transform:scale(1.25)}}';
+                document.head.appendChild(s);
+            }
+            document.body.appendChild(warn);
+            requestAnimationFrame(() => { warn.style.transform='translate(-50%,-50%) scale(1)'; warn.style.opacity='1'; });
+            setTimeout(() => { warn.style.transform='translate(-50%,-50%) scale(0.8)'; warn.style.opacity='0'; setTimeout(()=>warn.remove(),380); }, 2800);
+        }
+
         function buyTeacher(teacher) {
             if (game.coins >= teacher.price) {
                 playSound(800, 0.1);
                 game.coins -= teacher.price;
                 teacher.owned = true;
                 
-                // Agregar al inventario
                 game.boughtTeachers.push({ emoji: teacher.emoji, name: teacher.name });
                 
                 updateHUD();
@@ -2333,17 +4166,309 @@
                 savePermanentData();
                 initShop();
                 
-                let msg = `✅ ¡Compraste a ${teacher.name}!`;
-                if (teacher.special) {
-                    msg += ' ¡El legendario Profesor Rosales se ha unido!';
+                const gameActive = !game.gameOver && document.getElementById('gameArea').children.length > 0;
+                if (gameActive) {
+                    spawnBoughtTeacherImmediately(teacher);
+                    if (game.mode === 'destruction') {
+                        showTeacherWarning('¡' + teacher.name + ' entró al campo!\n¡DESTRÚYELO antes de que te jale! 💥', '#e74c3c', true);
+                    } else if (game.mode === 'organization') {
+                        showTeacherWarning('¡' + teacher.name + ' va a revisar!\n¡ORGANÍZALO antes de que te jale! 😱', '#ff6f00', false);
+                    } else {
+                        showTeacherWarning('¡' + teacher.name + ' está en el campo!\n¡ORGANÍZALO o DESTRÚYELO! 🔥', '#9b59b6', true);
+                    }
                 }
-                msg += ' Ahora aparecerá en tus partidas.';
-                alert(msg);
+                
+                showShopToast('✅ ¡' + teacher.name + ' comprado!');
             }
+        }
+
+        // Libera el item/profe de la tienda para que se pueda volver a comprar
+        function releaseShopItem(obj) {
+            const itemId = obj.dataset.shopItemId;
+            const itemType = obj.dataset.shopItemType; // 'item' or 'teacher'
+            if (!itemId || !itemType) return;
+
+            if (itemType === 'teacher') {
+                const teacher = teachers.find(t => t.id === itemId);
+                if (teacher) {
+                    teacher.owned = false;
+                    // Remover del array de comprados
+                    game.boughtTeachers = game.boughtTeachers.filter(bt => bt.name !== teacher.name);
+                }
+            } else {
+                // Buscar en todas las categorías de shopItems
+                let found = false;
+                Object.keys(shopItems).forEach(catKey => {
+                    if (found) return;
+                    const item = shopItems[catKey].find(i => i.id === itemId);
+                    if (item) {
+                        item.owned = false;
+                        // Remover del array de comprados
+                        game.boughtItems = game.boughtItems.filter(bi => bi.name !== item.name);
+                        found = true;
+                    }
+                });
+            }
+
+            savePermanentData();
+            // Refrescar tienda si está abierta
+            if (!document.getElementById('shopPanel').classList.contains('hidden')) {
+                initShop();
+            }
+        }
+
+        function spawnBoughtItemImmediately(item, category, shopCategory) {
+            const area = document.getElementById('gameArea');
+            const settings = difficulties[game.difficulty];
+            
+            // Función auxiliar para obtener posición válida
+            function getRandomPosition() {
+                const margin = 100;
+                const x = margin + Math.random() * (area.offsetWidth - margin * 2);
+                const y = margin + Math.random() * (area.offsetHeight - 400);
+                return { x, y };
+            }
+            
+            // Determinar qué tipo de objeto crear según el modo
+            if (game.mode === 'destruction') {
+                // Crear objeto destructible
+                const pos = getRandomPosition();
+                const obj = document.createElement('div');
+                obj.className = 'destructible';
+                obj.textContent = item.emoji;
+                obj.dataset.bomb = 'false';
+                obj.dataset.special = 'false';
+                obj.dataset.shopItemId = item.id;
+                obj.dataset.shopItemType = 'item';
+                obj.style.left = pos.x + 'px';
+                obj.style.top = pos.y + 'px';
+                obj.style.position = 'absolute';
+                obj.style.fontSize = '3em';
+                obj.style.cursor = 'pointer';
+                obj.style.transition = 'transform 0.3s';
+                obj.style.userSelect = 'none';
+                
+                if (Math.random() < 0.3) {
+                    obj.style.animation = 'moveAround 4s ease-in-out infinite';
+                }
+                
+                // NO agregar timer - objetos comprados no desaparecen por tiempo
+                
+                obj.onclick = () => handleClick(obj);
+                area.appendChild(obj);
+                
+                // Incrementar totalObjects porque este objeto se agregó DESPUÉS del conteo inicial
+                game.totalObjects++;
+                
+                console.log('✅ Objeto destructible creado:', item.emoji, 'en posición', pos);
+            } else if (game.mode === 'organization') {
+                // Crear objeto organizable
+                const pos = getRandomPosition();
+                const obj = document.createElement('div');
+                obj.className = 'organizable';
+                obj.textContent = item.emoji;
+                obj.dataset.category = category;
+                obj.dataset.shopCategory = shopCategory; // GUARDAR categoría original de tienda
+                obj.dataset.processed = 'false';
+                obj.dataset.shopItemId = item.id;
+                obj.dataset.shopItemType = 'item';
+                obj.draggable = true;
+                obj.style.left = pos.x + 'px';
+                obj.style.top = pos.y + 'px';
+                obj.style.position = 'absolute';
+                obj.style.fontSize = '3em';
+                obj.style.cursor = 'grab';
+                obj.style.userSelect = 'none';
+                obj.style.zIndex = '10';
+                obj.style.padding = '10px';
+                obj.style.background = 'rgba(255,255,255,0.9)';
+                obj.style.borderRadius = '15px';
+                obj.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+                
+                if (Math.random() < 0.4) {
+                    obj.style.animation = 'moveAround 4s ease-in-out infinite';
+                }
+                
+                // Configurar eventos de arrastre
+                obj.ondragstart = (e) => {
+                    console.log('🎯 Arrastrando:', item.emoji, 'Categoría:', category);
+                    game.dragging = obj;
+                    obj.classList.add('dragging');
+                    obj.style.animation = 'none';
+                    playSound(400, 0.1);
+                };
+                
+                obj.ondragend = () => {
+                    console.log('🛑 Soltando:', item.emoji);
+                    obj.classList.remove('dragging');
+                    game.dragging = null;
+                    restoreObjectsZone();
+                };
+                
+                // Agregar al área de juego
+                area.appendChild(obj);
+                
+                // Incrementar totalObjects porque este objeto se agregó DESPUÉS del conteo inicial
+                game.totalObjects++;
+                
+                console.log('✅ Objeto organizable creado:', item.emoji, 'categoría:', category, 'en posición', pos);
+            } else if (game.mode === 'pro') {
+                // En modo PRO: 50% chance de ser destructible o organizable
+                const isDestructible = Math.random() < 0.5;
+                
+                if (isDestructible) {
+                    // Crear como destructible
+                    const pos = getRandomPosition();
+                    const obj = document.createElement('div');
+                    obj.className = 'destructible';
+                    obj.textContent = item.emoji;
+                    obj.dataset.bomb = 'false';
+                    obj.dataset.special = 'false';
+                    obj.dataset.shopItemId = item.id;
+                    obj.dataset.shopItemType = 'item';
+                    obj.style.left = pos.x + 'px';
+                    obj.style.top = pos.y + 'px';
+                    obj.style.position = 'absolute';
+                    obj.style.fontSize = '3em';
+                    obj.style.cursor = 'pointer';
+                    obj.style.transition = 'transform 0.3s';
+                    obj.style.userSelect = 'none';
+                    
+                    // Movimiento más dinámico en modo PRO
+                    const speeds = ['2s', '2.5s', '3s', '3.5s', '4s'];
+                    const speed = speeds[Math.floor(Math.random() * speeds.length)];
+                    obj.style.animation = `moveAround ${speed} ease-in-out infinite`;
+                    
+                    if (Math.random() < 0.3) {
+                        obj.style.animationDirection = 'reverse';
+                    }
+                    
+                    obj.onclick = () => handleClick(obj);
+                    area.appendChild(obj);
+                    
+                    // Incrementar totalObjects
+                    game.totalObjects++;
+                    
+                    console.log('✅ [PRO] Objeto destructible creado:', item.emoji);
+                } else {
+                    // Crear como organizable
+                    const pos = getRandomPosition();
+                    const obj = document.createElement('div');
+                    obj.className = 'organizable';
+                    obj.textContent = item.emoji;
+                    obj.dataset.category = category;
+                    obj.dataset.shopCategory = shopCategory;
+                    obj.dataset.processed = 'false';
+                    obj.dataset.shopItemId = item.id;
+                    obj.dataset.shopItemType = 'item';
+                    obj.draggable = true;
+                    obj.style.left = pos.x + 'px';
+                    obj.style.top = pos.y + 'px';
+                    obj.style.position = 'absolute';
+                    obj.style.fontSize = '3em';
+                    obj.style.cursor = 'grab';
+                    obj.style.userSelect = 'none';
+                    obj.style.zIndex = '10';
+                    obj.style.padding = '10px';
+                    obj.style.background = 'rgba(255,255,255,0.9)';
+                    obj.style.borderRadius = '15px';
+                    obj.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+                    
+                    if (Math.random() < 0.4) {
+                        obj.style.animation = 'moveAround 4s ease-in-out infinite';
+                    }
+                    
+                    obj.ondragstart = (e) => {
+                        game.dragging = obj;
+                        obj.classList.add('dragging');
+                        obj.style.animation = 'none';
+                        playSound(400, 0.1);
+                    };
+                    
+                    obj.ondragend = () => {
+                        obj.classList.remove('dragging');
+                        game.dragging = null;
+                        restoreObjectsZone();
+                    };
+                    
+                    area.appendChild(obj);
+                    
+                    // Incrementar totalObjects
+                    game.totalObjects++;
+                    
+                    console.log('✅ [PRO] Objeto organizable creado:', item.emoji, 'categoría:', category);
+                }
+            }
+            
+            updateHUD();
+        }
+        
+        function spawnBoughtTeacherImmediately(teacher) {
+            const area = document.getElementById('gameArea');
+            function getRndPos() {
+                const m = 60;
+                return { x: m + Math.random() * (area.offsetWidth - m*2), y: m + Math.random() * (area.offsetHeight - 400) };
+            }
+            function makeDestructible() {
+                const pos = getRndPos();
+                const obj = document.createElement('div');
+                obj.className = 'destructible';
+                obj.textContent = teacher.emoji;
+                obj.dataset.bomb = 'false'; obj.dataset.special = 'false';
+                obj.dataset.shopItemId = teacher.id; obj.dataset.shopItemType = 'teacher';
+                obj.style.cssText = `left:${pos.x}px;top:${pos.y}px;position:absolute;font-size:3.5em;cursor:pointer;user-select:none;z-index:15;`;
+                obj.onclick = () => { clearInterval(parseInt(obj.dataset.roamId)); handleClick(obj); };
+                area.appendChild(obj);
+                startTeacherRoam(obj, area);
+                game.totalObjects++;
+            }
+            function makeOrganizable() {
+                const pos = getRndPos();
+                const obj = document.createElement('div');
+                obj.className = 'organizable';
+                obj.textContent = teacher.emoji;
+                obj.dataset.category = 'profesores'; obj.dataset.processed = 'false';
+                obj.dataset.shopItemId = teacher.id; obj.dataset.shopItemType = 'teacher';
+                obj.draggable = true;
+                obj.style.cssText = `left:${pos.x}px;top:${pos.y}px;position:absolute;font-size:3.5em;cursor:grab;user-select:none;z-index:15;padding:10px;background:rgba(255,255,255,0.9);border-radius:15px;box-shadow:0 5px 15px rgba(0,0,0,0.2);`;
+                obj.ondragstart = () => { clearInterval(parseInt(obj.dataset.roamId)); game.dragging = obj; obj.classList.add('dragging'); obj.style.animation='none'; playSound(400,0.1); };
+                obj.ondragend = () => { obj.classList.remove('dragging'); game.dragging = null; restoreObjectsZone(); };
+                area.appendChild(obj);
+                startTeacherRoam(obj, area);
+                game.totalObjects++;
+            }
+
+            if (game.mode === 'destruction') { makeDestructible(); }
+            else if (game.mode === 'organization') { makeOrganizable(); }
+            else if (game.mode === 'pro') {
+                Math.random() < 0.5 ? makeDestructible() : makeOrganizable();
+            }
+            updateHUD();
+        }
+
+        function resetStuckObjects() {
+            playSound(400, 0.1);
+            // Encontrar todos los objetos organizables que puedan estar pegados
+            document.querySelectorAll('.organizable').forEach(obj => {
+                if (obj.dataset.processed !== 'true') {
+                    obj.classList.remove('dragging');
+                    obj.style.opacity = '1';
+                    obj.style.cursor = 'grab';
+                    obj.style.pointerEvents = 'auto';
+                    // Restaurar animación aleatoria
+                    if (Math.random() < 0.4) {
+                        obj.style.animation = 'moveAround 4s ease-in-out infinite';
+                    }
+                }
+            });
+            game.dragging = null;
+            console.log('🔧 Objetos reseteados');
         }
 
         function toggleShop() {
             playSound(400, 0.1);
+            // Cerrar logros si están abiertos (mismo lado)
+            document.getElementById('achievementsPanel').classList.add('hidden');
             document.getElementById('shopPanel').classList.toggle('hidden');
             initShop(); // Refresh to update buttons
         }
@@ -2372,7 +4497,8 @@
                 lives: game.lives,
                 bombsExploded: game.bombsExploded,
                 errorsCommitted: game.errorsCommitted,
-                username: game.username
+                username: game.username,
+                activeGameMode: game.activeGameMode
             };
             setStorage('gameProgress', JSON.stringify(progress));
         }
@@ -2391,9 +4517,32 @@
 
         function confirmQuit() {
             if (confirm('¿Salir sin guardar? Perderás todo el progreso actual.')) {
+                playSound(400, 0.1);
+                
+                // Borrar progreso guardado
                 removeStorage('gameProgress');
+                
+                // Limpiar el área de juego
+                const gameArea = document.getElementById('gameArea');
+                if (gameArea) {
+                    gameArea.innerHTML = '';
+                }
+                
+                // Ocultar todos los paneles de juego
                 document.getElementById('pauseMenu').classList.add('hidden');
                 document.getElementById('highScoreDisplay').classList.add('hidden');
+                document.getElementById('gameArea').classList.add('hidden');
+                document.getElementById('hud').classList.add('hidden');
+                document.getElementById('endScreen').classList.add('hidden');
+                document.getElementById('gameOverModal').classList.add('hidden');
+                
+                // Resetear estado del juego
+                game.gameOver = false;
+                game.isPaused = false;
+                game.completed = 0;
+                game.totalObjects = 0;
+                
+                // Volver al menú principal
                 backToMenu();
             }
         }
@@ -2414,92 +4563,32 @@
         // Cargar progreso guardado al inicio
         function loadSavedProgress() {
             const savedGame = getStorage('gameProgress');
-            if (savedGame) {
-                const saved = JSON.parse(savedGame);
-                
-                // Verificar si el modo y dificultad elegidos coinciden con el progreso guardado
-                const modoCoincide = game.mode === saved.mode;
-                const dificultadCoincide = game.difficulty === saved.difficulty;
-                
-                if (modoCoincide && dificultadCoincide) {
-                    // Mismo modo y dificultad - cargar automáticamente sin preguntar
-                    game.level = saved.level;
-                    game.round = saved.round;
-                    game.score = saved.score;
-                    game.coins = saved.coins;
-                    game.lives = saved.lives;
-                    game.bombsExploded = saved.bombsExploded;
-                    game.errorsCommitted = saved.errorsCommitted;
-                    game.username = saved.username;
-                    
-                    return true;
-                } else {
-                    // Modo o dificultad diferentes - preguntar qué hacer
-                    const modoNombre = { destruction: 'Destrucción', organization: 'Organización' };
-                    const difNombre = { easy: 'Fácil', medium: 'Intermedio', hard: 'Avanzado' };
-                    
-                    const mensaje = `Tienes una partida guardada diferente:
-${modoNombre[saved.mode]} - ${difNombre[saved.difficulty]}
-Nivel ${saved.level}, Ronda ${saved.round}
+            if (!savedGame) return false;
 
-¿Quieres continuar esa partida?
-(Si dices NO, se iniciará: ${modoNombre[game.mode]} - ${difNombre[game.difficulty]})`;
-                    
-                    if (confirm(mensaje)) {
-                        // Continuar con la partida guardada (cambiar a ese modo/dificultad)
-                        game.mode = saved.mode;
-                        game.difficulty = saved.difficulty;
-                        game.level = saved.level;
-                        game.round = saved.round;
-                        game.score = saved.score;
-                        game.coins = saved.coins;
-                        game.lives = saved.lives;
-                        game.bombsExploded = saved.bombsExploded;
-                        game.errorsCommitted = saved.errorsCommitted;
-                        game.username = saved.username;
-                        
-                        return true;
-                    } else {
-                        // Iniciar nueva partida con modo/dificultad elegidos (borrar guardado)
-                        removeStorage('gameProgress');
-                        return false;
-                    }
-                }
-            }
-            return false;
+            const saved = JSON.parse(savedGame);
+
+            // NO sobreescribir game.mode ni game.difficulty — el usuario ya los eligió en el menú
+            // Solo restaurar el progreso numérico (nivel, ronda, puntos, vidas)
+            game.level           = saved.level           || 1;
+            game.round           = saved.round           || 1;
+            game.score           = saved.score           || 0;
+            game.lives           = saved.lives           || 3;
+            game.bombsExploded   = saved.bombsExploded   || 0;
+            game.errorsCommitted = saved.errorsCommitted || 0;
+            // activeGameMode pendiente para la próxima ronda (si había uno guardado)
+            if (saved.activeGameMode) game.activeGameMode = saved.activeGameMode;
+
+            return true;
         }
 
         // Load saved palette
         window.onload = () => {
-            const saved = getStorage('palette');
-            if (saved) document.body.className = saved;
-            
-            // Cargar high score
-            const highScore = getStorage('highScore');
-            if (highScore) game.highScore = parseInt(highScore);
-            
-            // Cargar datos permanentes (monedas, logros, paletas)
-            const permanentData = getStorage('permanentData');
-            if (permanentData) {
-                const data = JSON.parse(permanentData);
-                if (data.coins !== undefined) game.coins = data.coins;
-                if (data.achievements) {
-                    achievements.forEach(ach => {
-                        const saved = data.achievements.find(a => a.id === ach.id);
-                        if (saved) {
-                            ach.progress = saved.progress;
-                            ach.unlocked = saved.unlocked;
-                        }
-                    });
-                }
-                if (data.palettes) {
-                    palettes.forEach(pal => {
-                        const saved = data.palettes.find(p => p.id === pal.id);
-                        if (saved && saved.owned) {
-                            pal.owned = true;
-                        }
-                    });
-                }
+            // No cargar datos aquí — se cargan en startGame() una vez que se conoce el username
+            // Solo restaurar la paleta guardada globalmente (sin username)
+            const lastUser = localStorage.getItem('dyo_lastUser');
+            if (lastUser) {
+                document.getElementById('usernameInput').value = lastUser;
+                validateUsername();
             }
         };
         
@@ -2517,7 +4606,8 @@ Nivel ${saved.level}, Ronda ${saved.round}
                 shopItems: shopItemsData,
                 teachers: teachers.map(t => ({ id: t.id, owned: t.owned })),
                 boughtItems: game.boughtItems,
-                boughtTeachers: game.boughtTeachers
+                boughtTeachers: game.boughtTeachers,
+                activeGameMode: game.activeGameMode
             };
             setStorage('permanentData', JSON.stringify(data));
         }
