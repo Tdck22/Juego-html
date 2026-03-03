@@ -46,10 +46,15 @@
       border-radius: 5px;
       cursor: pointer;
       font-weight: bold;
+      color: white;
     }
 
     .login { background: #22c55e; }
     .register { background: #3b82f6; }
+
+    button:hover {
+      opacity: 0.9;
+    }
   </style>
 </head>
 
@@ -58,8 +63,8 @@
   <div class="card">
     <h2>🎮 Destruye y Ordena</h2>
 
-    <input id="email" type="email" placeholder="Correo">
-    <input id="password" type="password" placeholder="Contraseña">
+    <input id="email" type="email" placeholder="Correo" required>
+    <input id="password" type="password" placeholder="Contraseña" required>
 
     <button type="button" id="loginBtn" class="login">Login</button>
     <button type="button" id="registerBtn" class="register">Registro</button>
@@ -76,7 +81,20 @@
     const email = document.getElementById("email");
     const password = document.getElementById("password");
 
+    // 🔥 Verificar si ya existe sesión activa
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (session) {
+      window.location.href = "game.html";
+    }
+
+    // 🔐 Login
     document.getElementById("loginBtn").addEventListener("click", async () => {
+      if (!email.value || !password.value) {
+        alert("Completa todos los campos.");
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email: email.value,
         password: password.value
@@ -89,7 +107,13 @@
       }
     });
 
+    // 📝 Registro
     document.getElementById("registerBtn").addEventListener("click", async () => {
+      if (!email.value || !password.value) {
+        alert("Completa todos los campos.");
+        return;
+      }
+
       const { error } = await supabase.auth.signUp({
         email: email.value,
         password: password.value
