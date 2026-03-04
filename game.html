@@ -4715,11 +4715,16 @@
         }
 
         async function cerrarSesion() {
-            if (confirm('¿Seguro que quieres cerrar sesión?')) {
-                await window._supabase.auth.signOut();
-                window.location.href = 'index.html';
-            }
-        }
+    if (confirm('¿Seguro que quieres cerrar sesión?')) {
+        const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm");
+        const supabase = createClient(
+            "https://ugfsvolregmdtwagmkbk.supabase.co",
+            "sb_publishable_tw9_SXAyNJEiUpEERqmHvA_qqJhy7Id"
+        );
+        await supabase.auth.signOut();
+        window.location.href = 'index.html';
+    }
+}
     </script>
 	<script type="module" src="supabase_patch.js"></script>
 </body>
