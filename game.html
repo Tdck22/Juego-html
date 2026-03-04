@@ -4722,6 +4722,8 @@
             "sb_publishable_tw9_SXAyNJEiUpEERqmHvA_qqJhy7Id"
         );
         await supabase.auth.signOut();
+        // Esperar un momento para que Supabase limpie la sesion
+        await new Promise(r => setTimeout(r, 500));
         window.location.href = 'index.html';
     }
 }
