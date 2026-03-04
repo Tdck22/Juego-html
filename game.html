@@ -1382,6 +1382,8 @@
                 ▶️ ¡JUGAR!
             </button>
 
+            <button class="btn" onclick="cerrarSesion()" style="position: absolute; bottom: 20px; right: 20px; background: rgba(255,255,255,0.2); color: white;">🚪 Cerrar sesión</button>
+
         </div>
 
         <!-- HUD -->
@@ -4711,7 +4713,14 @@
             };
             setStorage('permanentData', JSON.stringify(data));
         }
+
+        async function cerrarSesion() {
+            if (confirm('¿Seguro que quieres cerrar sesión?')) {
+                await window._supabase.auth.signOut();
+                window.location.href = 'index.html';
+            }
+        }
     </script>
-	<script type="module" src="supabase_patch.js"></script>	
+	<script type="module" src="supabase_patch.js"></script>
 </body>
 </html>
