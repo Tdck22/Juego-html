@@ -1774,6 +1774,7 @@
         // Variables para items comprados
         game.boughtItems = [];
         game.boughtTeachers = [];
+        game.pendingTeacherWarnings = [];
         game.currentShopTab = 'items';
         
         // Mapeo de categorías de tienda a categorías de juego
@@ -2500,6 +2501,23 @@
             game.scoreAtRoundStart = game.score; // Para calcular puntos de esta ronda
             motivActionCount = 0; // Resetear contador de acciones al empezar ronda
             updateHUD();
+
+            // Mostrar avisos de profesores comprados antes de esta ronda
+            if (game.pendingTeacherWarnings && game.pendingTeacherWarnings.length > 0) {
+                game.pendingTeacherWarnings.forEach((tw, i) => {
+                    setTimeout(() => {
+                        const tName = tw.name;
+                        if (game.mode === 'destruction') {
+                            showTeacherWarning('¡' + tName + ' está aquí!\n¡DESTRÚYELO antes de que te jale! 💥', '#e74c3c', true);
+                        } else if (game.mode === 'organization') {
+                            showTeacherWarning('¡' + tName + ' va a revisar!\n¡ORGANÍZALO antes de que te jale! 😱', '#ff6f00', false);
+                        } else {
+                            showTeacherWarning('¡' + tName + ' está en el campo!\n¡ORGANÍZALO o DESTRÚYELO! 🔥', '#9b59b6', true);
+                        }
+                    }, 600 + i * 3200);
+                });
+                game.pendingTeacherWarnings = [];
+            }
             
             const area = document.getElementById('gameArea');
             area.innerHTML = '';
@@ -3556,6 +3574,8 @@
             document.getElementById('round').textContent = `${game.round}/10`;
             document.getElementById('level').textContent = game.level;
             document.getElementById('coins').textContent = game.coins;
+            const menuCoinsEl = document.getElementById('menuCoins');
+            if (menuCoinsEl) menuCoinsEl.textContent = game.coins;
             
             // Actualizar high score
             updateHighScore();
@@ -3673,7 +3693,7 @@
                 if (game.level >= 5) {
                     // Completó todos los 5 niveles
                     alert('🎊 ¡FELICITACIONES! ¡Completaste todos los niveles! 🎊');
-                    removeStorage('gameProgress'); // Limpiar al completar todo
+                    removeStorage('gameProgress_' + (game.mode || 'none') + '_' + (game.difficulty || 'none')); // Limpiar al completar todo
                     game.processingNextRound = false;
                     backToMenu();
                     return;
@@ -3710,7 +3730,7 @@
             document.getElementById('hud').classList.add('hidden');
             
             // Limpiar progreso guardado cuando pierdes
-            removeStorage('gameProgress');
+            removeStorage('gameProgress_' + (game.mode || 'none') + '_' + (game.difficulty || 'none'));
         }
 
         function restartLevel() {
@@ -4108,13 +4128,21 @@
                     btn.className = 'buy-btn';
                     
                     if (pal.owned) {
-                        btn.textContent = '✓';
+                        const isActive = document.body.className === pal.id;
+                        btn.textContent = isActive ? '✓ Activa' : 'Usar';
                         btn.classList.add('owned');
-                        btn.onclick = () => {
-                            playSound(400, 0.1);
-                            document.body.className = pal.id;
-                            setStorage('palette', pal.id);
-                        };
+                        if (isActive) {
+                            btn.style.background = '#27ae60';
+                            btn.style.cursor = 'default';
+                        } else {
+                            btn.style.background = '#3498db';
+                            btn.onclick = () => {
+                                playSound(400, 0.1);
+                                document.body.className = pal.id;
+                                setStorage('palette', pal.id);
+                                initShop(); // Refrescar para actualizar estado activo
+                            };
+                        }
                     } else {
                         btn.textContent = 'Comprar';
                         btn.disabled = game.coins < pal.cost;
@@ -4278,6 +4306,9 @@
                     } else {
                         showTeacherWarning('¡' + teacher.name + ' está en el campo!\n¡ORGANÍZALO o DESTRÚYELO! 🔥', '#9b59b6', true);
                     }
+                } else {
+                    // Ronda no activa: encolar aviso para la próxima ronda
+                    game.pendingTeacherWarnings.push({ name: teacher.name });
                 }
                 
                 showShopToast('✅ ¡' + teacher.name + ' comprado!');
@@ -4602,7 +4633,8 @@
                 username: game.username,
                 activeGameMode: game.activeGameMode
             };
-            setStorage('gameProgress', JSON.stringify(progress));
+            const key = 'gameProgress_' + (game.mode || 'none') + '_' + (game.difficulty || 'none');
+            setStorage(key, JSON.stringify(progress));
         }
 
         function saveAndExit() {
@@ -4622,7 +4654,8 @@
                 playSound(400, 0.1);
                 
                 // Borrar progreso guardado
-                removeStorage('gameProgress');
+                const quitKey = 'gameProgress_' + (game.mode || 'none') + '_' + (game.difficulty || 'none');
+                removeStorage(quitKey);
                 
                 // Limpiar el área de juego
                 const gameArea = document.getElementById('gameArea');
@@ -4664,7 +4697,8 @@
 
         // Cargar progreso guardado al inicio
         function loadSavedProgress() {
-            const savedGame = getStorage('gameProgress');
+            const key = 'gameProgress_' + (game.mode || 'none') + '_' + (game.difficulty || 'none');
+            const savedGame = getStorage(key);
             if (!savedGame) return false;
 
             const saved = JSON.parse(savedGame);
