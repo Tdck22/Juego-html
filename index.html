@@ -4,128 +4,254 @@
   <meta charset="UTF-8">
   <title>Login - Destruye y Ordena</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
-      font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: white;
+      font-family: 'Comic Sans MS', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      margin: 0;
     }
 
     .card {
-      background: #020617;
-      padding: 30px;
-      border-radius: 10px;
-      width: 320px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.6);
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      padding: 45px 40px;
+      border-radius: 25px;
+      width: 360px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      text-align: center;
     }
 
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
+    .titulo {
+      font-size: 2em;
+      color: white;
+      text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .subtitulo {
+      color: rgba(255,255,255,0.75);
+      font-size: 0.95em;
+      margin-bottom: 30px;
     }
 
     input {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 12px;
-      border-radius: 5px;
-      border: none;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+      border-radius: 12px;
+      border: 2px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.9);
+      font-size: 1em;
+      font-family: 'Comic Sans MS', Arial, sans-serif;
+      color: #333;
+      outline: none;
+      transition: border 0.3s;
     }
 
-    button {
+    input:focus {
+      border-color: white;
+    }
+
+    input::placeholder {
+      color: #999;
+    }
+
+    .btn-login {
       width: 100%;
-      padding: 10px;
-      margin-top: 8px;
+      padding: 14px;
+      margin-top: 4px;
       border: none;
-      border-radius: 5px;
+      border-radius: 12px;
       cursor: pointer;
       font-weight: bold;
-      color: white;
+      font-family: 'Comic Sans MS', Arial, sans-serif;
+      font-size: 1.1em;
+      background: white;
+      color: #667eea;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      transition: all 0.3s;
     }
 
-    .login { background: #22c55e; }
-    .register { background: #3b82f6; }
+    .btn-login:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
 
-    button:hover {
-      opacity: 0.9;
+    .btn-register {
+      width: 100%;
+      padding: 14px;
+      margin-top: 10px;
+      border: 2px solid rgba(255,255,255,0.6);
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      font-family: 'Comic Sans MS', Arial, sans-serif;
+      font-size: 1.1em;
+      background: rgba(255,255,255,0.15);
+      color: white;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      transition: all 0.3s;
+    }
+
+    .btn-register:hover {
+      background: rgba(255,255,255,0.25);
+      transform: translateY(-3px);
+    }
+
+    .mensaje-error {
+      color: #ff6b6b;
+      background: rgba(255,107,107,0.15);
+      border: 1px solid rgba(255,107,107,0.4);
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 12px;
+      font-size: 0.9em;
+      display: none;
+    }
+
+    .mensaje-exito {
+      color: #55efc4;
+      background: rgba(85,239,196,0.15);
+      border: 1px solid rgba(85,239,196,0.4);
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 12px;
+      font-size: 0.9em;
+      display: none;
+    }
+
+    .separador {
+      color: rgba(255,255,255,0.5);
+      margin: 14px 0 4px;
+      font-size: 0.85em;
+    }
+
+    /* Partículas flotantes de fondo */
+    .particula {
+      position: fixed;
+      font-size: 2em;
+      opacity: 0.15;
+      animation: flotar 6s ease-in-out infinite;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    @keyframes flotar {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-30px) rotate(10deg); }
     }
   </style>
 </head>
-
 <body>
 
+  <!-- Partículas decorativas de fondo -->
+  <div class="particula" style="top:10%; left:5%; animation-delay:0s;">📚</div>
+  <div class="particula" style="top:20%; right:8%; animation-delay:1s;">💥</div>
+  <div class="particula" style="bottom:15%; left:8%; animation-delay:2s;">⭐</div>
+  <div class="particula" style="bottom:25%; right:6%; animation-delay:0.5s;">🎮</div>
+  <div class="particula" style="top:50%; left:3%; animation-delay:1.5s;">📝</div>
+  <div class="particula" style="top:40%; right:4%; animation-delay:2.5s;">💎</div>
+
   <div class="card">
-    <h2>🎮 Destruye y Ordena</h2>
+    <div class="titulo">🎮 Destruye y Ordena 💥</div>
+    <div class="subtitulo">¡Inicia sesión para jugar!</div>
 
-    <input id="email" type="email" placeholder="Correo" required>
-    <input id="password" type="password" placeholder="Contraseña" required>
+    <input id="email" type="email" placeholder="📧 Correo electrónico" required>
+    <input id="password" type="password" placeholder="🔒 Contraseña" required>
 
-    <button type="button" id="loginBtn" class="login">Login</button>
-    <button type="button" id="registerBtn" class="register">Registro</button>
+    <button type="button" id="loginBtn" class="btn-login">▶️ ¡Entrar a jugar!</button>
+
+    <div class="separador">¿No tienes cuenta?</div>
+
+    <button type="button" id="registerBtn" class="btn-register">✏️ Registrarse</button>
+
+    <div id="mensajeError" class="mensaje-error"></div>
+    <div id="mensajeExito" class="mensaje-exito"></div>
   </div>
 
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-
     const supabaseUrl = "https://ugfsvolregmdtwagmkbk.supabase.co";
     const supabaseKey = "sb_publishable_tw9_SXAyNJEiUpEERqmHvA_qqJhy7Id";
-
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const email = document.getElementById("email");
-    const password = document.getElementById("password");
+    const emailInput    = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const mensajeError  = document.getElementById("mensajeError");
+    const mensajeExito  = document.getElementById("mensajeExito");
 
-    // 🔥 Verificar si ya existe sesión activa
+    function mostrarError(msg) {
+      mensajeError.textContent = "⚠️ " + msg;
+      mensajeError.style.display = "block";
+      mensajeExito.style.display = "none";
+    }
+
+    function mostrarExito(msg) {
+      mensajeExito.textContent = "✅ " + msg;
+      mensajeExito.style.display = "block";
+      mensajeError.style.display = "none";
+    }
+
+    // Verificar si ya existe sesión activa
     const { data: { session } } = await supabase.auth.getSession();
-
     if (session) {
       window.location.href = "game.html";
     }
 
-    // 🔐 Login
+    // Login
     document.getElementById("loginBtn").addEventListener("click", async () => {
-      if (!email.value || !password.value) {
-        alert("Completa todos los campos.");
+      const email    = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!email || !password) {
+        mostrarError("Completa todos los campos.");
         return;
       }
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.value,
-        password: password.value
-      });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
 
       if (error) {
-        alert(error.message);
+        mostrarError("Correo o contraseña incorrectos.");
       } else {
         window.location.href = "game.html";
       }
     });
 
-    // 📝 Registro
+    // Registro
     document.getElementById("registerBtn").addEventListener("click", async () => {
-      if (!email.value || !password.value) {
-        alert("Completa todos los campos.");
+      const email    = emailInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!email || !password) {
+        mostrarError("Completa todos los campos.");
         return;
       }
 
-      const { error } = await supabase.auth.signUp({
-        email: email.value,
-        password: password.value
-      });
+      if (password.length < 6) {
+        mostrarError("La contraseña debe tener al menos 6 caracteres.");
+        return;
+      }
+
+      const { error } = await supabase.auth.signUp({ email, password });
 
       if (error) {
-        alert(error.message);
+        mostrarError(error.message);
       } else {
-        alert("Registro exitoso. Ahora inicia sesión.");
+        mostrarExito("¡Registro exitoso! Ahora inicia sesión.");
       }
     });
-  </script>
 
+    // Permitir Enter para login
+    passwordInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") document.getElementById("loginBtn").click();
+    });
+  </script>
 </body>
 </html>
